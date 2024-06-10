@@ -76,6 +76,10 @@
   width: 100%
 }
 
+.drawer {
+  z-index: 10000;
+}
+
 /* Tailwind Styles */
 
 .app {

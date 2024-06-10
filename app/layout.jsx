@@ -9,6 +9,8 @@ import { Suspense } from 'react';
 import { ThemeModeScript } from "flowbite-react";
 import { Toaster } from 'react-hot-toast';
 
+import Loading from './loading';
+
 export const metadata = {
     title: "GeoRef",
     description: "Compare maps through the magic of georeferencing"
@@ -29,7 +31,7 @@ const RootLayout = ( {children} ) => {
                 </div>
                 <main className="app">
                     <Nav />
-                    <Suspense>
+                    <Suspense fallback={<Loading />}>
                         {children}
                     </Suspense>
                 </main>

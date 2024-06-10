@@ -46,7 +46,7 @@ if (!cached) {
 
 const connectToDatabase = async () => {
     mongoose.set('strictQuery', true);
-
+    //mongoose.set('timestamps', true);
 
     if (cached.conn) {
       return cached.conn;

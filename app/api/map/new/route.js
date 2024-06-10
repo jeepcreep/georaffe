@@ -1,21 +1,22 @@
 import connectToDatabase  from '@utils/database';
+import mongoose from 'mongoose';
 
 import Map from "@models/map";
 
 export const POST = async (req) => {
-    const { userId, title, s3ImageUrl } = await req.json();
+    const { userId, title, maxZoomLevel } = await req.json();
 
     console.log('user id : ' + userId);
     console.log('title : ' + title);
-    console.log('s3ImageUrl : ' + s3ImageUrl);
+    console.log('maxZoomLevel : ' + maxZoomLevel);
 
     await connectToDatabase();
 
     try {
         const newMap = new Map({
-            creator: userId,
+            creator: userId,  //TODO: REFACTOR!!!!
             title,
-            fileUrl: s3ImageUrl
+            maxZoomLevel
         })
 
         await newMap.save();

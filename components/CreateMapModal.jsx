@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Button, FileInput, Label, Modal, TextInput, Spinner } from "flowbite-react";
+import { Button, FileInput, Label, Modal, TextInput, Spinner, RangeSlider } from "flowbite-react";
 import { useState } from "react";
 
 import toast from 'react-hot-toast';
@@ -10,12 +10,14 @@ export default function CreateMapModal ({maps, setMaps }) {
   const [openModal, setOpenModal] = useState(false);
   const [title, setTitle] = useState('');
   const [file, setFile] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
 
   function onCloseModal() {
     setOpenModal(false);
     setTitle('');
     setFile(null);
+    setZoomLevel(5);
   }
 
   const handleFileChange = (e) => {
@@ -29,47 +31,50 @@ export default function CreateMapModal ({maps, setMaps }) {
     const formData = new FormData();
     formData.append('file', file);
 
-    // Upload the file to the server (implement server-side logic to handle the upload)
-    const uploadImageResponse = await fetch('/api/map/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    // first create the map entity in DB
+    try {
+      const createNewMapResponse = await fetch('/api/map/new', {
+        method: 'POST',
+        body: JSON.stringify({
+            userId: 1,
+            title: title,
+            maxZoomLevel: zoomLevel
+        })
+      })
 
-    if (uploadImageResponse.status == 201) {
-        const result = await uploadImageResponse.json();
-        // setOldMapUrl(result.s3ImageUrl);
+      if (createNewMapResponse.ok) {
+        const newMap = await createNewMapResponse.json();
 
-        try {
-            // next up create the map entity
-            const createNewMapResponse = await fetch('/api/map/new', {
-              method: 'POST',
-              body: JSON.stringify({
-                  userId: 1,
-                  title: title,
-                  s3ImageUrl: result.s3ImageUrl
-              })
+        setMaps( // Replace the state
+        [ // with a new array
+          ...maps, // that contains all the old items
+          newMap // and one new item at the end
+        ]
+        );
+
+        toast.success('New map created successfully!', {
+          position: 'top-left',
+        })
+        setOpenModal(false);
+
+        // Store the file locally, tile it and upload it to a storage server (e.g. AWS S3)
+        const uploadImageResponse = await fetch(`/api/map/${newMap._id}/upload?maxZoomLevel=${zoomLevel}`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (uploadImageResponse.status == 201) {
+            const result = await uploadImageResponse.json();
+            // setOldMapUrl(result.s3ImageUrl);
+            toast.success('Image is being processed, this may take a few seconds.', {
+              position: 'top-left',
             })
-
-            if (createNewMapResponse.ok) {
-              const newMap = await createNewMapResponse.json();
-
-              setMaps( // Replace the state
-              [ // with a new array
-                ...maps, // that contains all the old items
-                newMap // and one new item at the end
-              ]
-              );
-
-              toast.success('New map created successfully!', {
-                position: 'top-left',
-              })
-              setOpenModal(false);
-            }
-        } catch (error) {
-            console.log(error);
-        } finally {
-          setIsLoading(false);
         }
+      }
+    } catch (error) {
+        console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -131,6 +136,21 @@ export default function CreateMapModal ({maps, setMaps }) {
                   </div>
                   <FileInput id="dropzone-file" className="hidden" onChange={handleFileChange}/>
                 </Label>
+              </div>
+
+              <div>
+                <div className="mb-1 block">
+                  <Label htmlFor="default-range" value="Max. zoom level" />: {zoomLevel}
+                </div>
+                <RangeSlider 
+                  id="zoom-level" 
+                  min="1" 
+                  max="6" 
+                  value={zoomLevel}
+                  onChange={(event) => setZoomLevel(event.target.value)}/>
+                <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
+                      The higher, the longer it takes to process the image
+                </div>
               </div>
 
               <div className="w-full">

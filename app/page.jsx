@@ -1,29 +1,61 @@
 "use client"
 
-import React from 'react'
+import React, { Suspense } from 'react'
 import dynamic from "next/dynamic";
 import GeorefMap from '@components/GeorefMap';
 import MyMapsDrawer from '@components/MyMapsDrawer';
 import CreateMapModal from '@components/CreateMapModal';
 import { useState, useEffect } from 'react';
 
+import fetchDefaultSelectedMap from '@utils/initialize';
+
+import Loading from './loading';
+
 const DEFAULT_CENTER = [38.907132, -77.036546]
 
 const Home = () => {
   const [markers, setMarkers] = useState([]);
   const [maps, setMaps] = useState([]);
+  const [selectedMap, setSelectedMap] = useState(null);
+
+  const [isLoading, setLoading] = useState(true)
 
   useEffect( () => {
-    const fetchMaps = async () => {
+      const fetchMaps = async () => {
+      
       const response = await fetch('/api/map');
       const data = await response.json();
 
+      try {
+        const createNewMapResponse = await fetch('/api/services/scheduler', {
+          method: 'POST',
+          body: JSON.stringify({})
+        })
+        //console.log('createNewMapResponse', createNewMapResponse);
+      } catch  (error) {
+        console.log(error);
+      }
+
       setMaps(data);
+
+      let urlParams = '?selectedMap=newest'
+      fetch('/api/map' + urlParams)
+        .then((res) => res.json())
+        .then((selectedMap) => {
+          setSelectedMap(selectedMap)
+          setLoading(false)
+      })
+
+      // const selectedMapResponse = await fetch(process.env.HOST_BASE_URL_DEV + '/api/map' + urlParams);
+      // const selectedMapData = await selectedMapResponse.json();
+
+      // console.log('selectedMapData', selectedMapData);
     }
 
     fetchMaps();
   }, [])
 
+  if (isLoading) return <p>Loading...</p>
 
   return (
 
@@ -38,9 +70,11 @@ const Home = () => {
             geographical maps with one another
         </p>
         <div className='w-full flex-center flex-row'>
-            <MyMapsDrawer maps={maps} setMaps={setMaps}/>
-            <GeorefMap markers={markers} setMarkers={setMarkers} />
-            <CreateMapModal maps={maps} setMaps={setMaps} />
+            <Suspense fallback={<Loading />}>
+              <MyMapsDrawer maps={maps} setMaps={setMaps} selectedMap={selectedMap} setSelectedMap={setSelectedMap}/>
+              <GeorefMap markers={markers} setMarkers={setMarkers} selectedMap={selectedMap}/>
+            </Suspense>
+            <CreateMapModal maps={maps} setMaps={setMaps}/>
         </div>
        
 
