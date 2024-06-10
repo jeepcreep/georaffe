@@ -1,14 +1,10 @@
-import connectToDatabase  from '@utils/database';
-
 import { deleteFromS3Bucket } from '@utils/s3handler';
 
-import Map from "@models/map";
+import { getMapById, deleteMapById } from '@utils/dbTools';
 
 export const GET = async (req, { params }) => {
     try {
-        await connectToDatabase();
-
-        const map = await Map.findById(params.id).populate('user');
+        const map = await getMapById(params.id);
 
         if (!map) return new Response("Map not found!", { status : 404 });
 
@@ -19,38 +15,44 @@ export const GET = async (req, { params }) => {
     }
 }
 
-// export const PATCH = async (req, { params }) => {
-//     const { prompt, tag } = await req.json();
+export const PATCH = async (req, { params }) => {
+    const { status, fileId, width, height } = await req.json();
 
-//     try {
-//         await connectToDatabase();
+    try {
+        const existingMap = await getMapById(params.id);
 
-//         const existingMap = await Map.findById(params.id).populate('user');
+        if (!existingMap) return new Response("Map not found!", { status : 404 });
 
-//         if (!prompt) return new Response("Prompt not found!", { status : 404 });
+        if (status) {
+            existingMap.status = status;
+        }
+        if (fileId) {
+            existingMap.fileId = fileId;
+        }
+        if (width) {
+            existingMap.width = width;
+        }
+        if (height) {
+            existingMap.height = height;
+        }
 
-//         existingMap.prompt = prompt;
-//         existingMap.tag = tag;
+        await existingMap.save();
 
-//         await existingMap.save();
-
-//         return new Response(JSON.stringify(existingMap, { status : 200 }));
-//     } catch (error) {
-//         console.log(error);
-//         return new Response("Failed to update prompt.", { status: 500 });
-//     }
-// }
+        return new Response(JSON.stringify(existingMap, { status : 200 }));
+    } catch (error) {
+        console.log(error);
+        return new Response("Failed to update map.", { status: 500 });
+    }
+}
 
 export const DELETE = async (req, { params }) => {
     try {
-        await connectToDatabase();
+        const map = await getMapById(params.id);
+        const fileId = map.fileId;
 
-        const map = await Map.findById(params.id)
-        const s3Filename = map.fileUrl;
+        await deleteFromS3Bucket(fileId, process.env.AWS_S3_TILES_BUCKET);
 
-        await deleteFromS3Bucket(s3Filename);
-
-        await Map.findByIdAndDelete(params.id);
+        await deleteMapById(params.id);
 
         return new Response("Map deleted successfully", { status : 200 });
     } catch (error) {

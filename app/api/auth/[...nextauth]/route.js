@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
 import User from '@models/user';
-import { connectToDB } from '@utils/database';
+import connectToDatabase  from '@utils/database';
 
 // console.log({
 //     clientId: process.env.GOOGLE_ID,
@@ -18,6 +18,8 @@ const handler = NextAuth({
     ],
     callbacks: {
         async session({ session }) {
+            await connectToDatabase();
+            
             const sessionUser = await User.findOne({
                 email: session.user.email
             })
@@ -28,7 +30,7 @@ const handler = NextAuth({
         },
         async signIn({ profile }) {
             try {
-                await connectToDB();
+                await connectToDatabase();
     
                 // check if a user already exists
                 const userExists = await User.findOne({

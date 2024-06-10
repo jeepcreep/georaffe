@@ -1,4 +1,5 @@
 import { Schema, model, models } from 'mongoose';
+import { MapStatus } from '@utils/enums';
 
 const MapSchema = new Schema({
     user: {
@@ -9,11 +10,24 @@ const MapSchema = new Schema({
         type: String,
         required: [true, 'title is required.']
     },
-    fileUrl: {
+    status: {
         type: String,
-        required: [true, 'image url is required.']
+        default: MapStatus.New
+    },
+    fileId: {
+        type: String
+    },
+    width: {
+        type: Number
+    },
+    height: {
+        type: Number
+    },
+    maxZoomLevel: {
+        type: Number,
+        default: 5
     }
-})
+}, { timestamps: true, })
 
 const Map = models.Map || model("Map", MapSchema);
 
