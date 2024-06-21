@@ -6,6 +6,8 @@ import MyMapsDrawer from '@components/MyMapsDrawer';
 
 import { Suspense } from 'react';
 
+import Script from 'next/script'
+
 import { ThemeModeScript } from "flowbite-react";
 import { Toaster } from 'react-hot-toast';
 
@@ -21,6 +23,7 @@ const RootLayout = ( {children} ) => {
     <html lang="en">
         <head>
             <ThemeModeScript />
+            <Script src="https://unpkg.com/leaflet.imageoverlay.arrugator@1.4.0/dist/leaflet.imageoverlay.arrugator.js" />
         </head>
         <body>
             <Toaster />

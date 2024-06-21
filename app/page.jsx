@@ -11,14 +11,14 @@ import fetchDefaultSelectedMap from '@utils/initialize';
 
 import Loading from './loading';
 
-const DEFAULT_CENTER = [38.907132, -77.036546]
-
 const Home = () => {
-  const [markers, setMarkers] = useState([]);
+  // const [markers, setMarkers] = useState([]);
   const [maps, setMaps] = useState([]);
   const [selectedMap, setSelectedMap] = useState(null);
 
   const [isLoading, setLoading] = useState(true)
+
+  const [schedulerStarted, setSchedulerStarted] = useState(false);
 
   useEffect( () => {
       const fetchMaps = async () => {
@@ -26,14 +26,16 @@ const Home = () => {
       const response = await fetch('/api/map');
       const data = await response.json();
 
-      try {
-        const createNewMapResponse = await fetch('/api/services/scheduler', {
-          method: 'POST',
-          body: JSON.stringify({})
-        })
-        //console.log('createNewMapResponse', createNewMapResponse);
-      } catch  (error) {
-        console.log(error);
+      if (!schedulerStarted) {
+        try {
+          const createNewMapResponse = await fetch('/api/services/scheduler', {
+            method: 'POST',
+            body: JSON.stringify({})
+          })
+          setSchedulerStarted(true);
+        } catch  (error) {
+          console.log(error);
+        }
       }
 
       setMaps(data);
@@ -42,7 +44,7 @@ const Home = () => {
       fetch('/api/map' + urlParams)
         .then((res) => res.json())
         .then((selectedMap) => {
-          setSelectedMap(selectedMap)
+          setSelectedMap(selectedMap[0])
           setLoading(false)
       })
 
@@ -72,7 +74,7 @@ const Home = () => {
         <div className='w-full flex-center flex-row'>
             <Suspense fallback={<Loading />}>
               <MyMapsDrawer maps={maps} setMaps={setMaps} selectedMap={selectedMap} setSelectedMap={setSelectedMap}/>
-              <GeorefMap markers={markers} setMarkers={setMarkers} selectedMap={selectedMap}/>
+              <GeorefMap selectedMap={selectedMap}/>
             </Suspense>
             <CreateMapModal maps={maps} setMaps={setMaps}/>
         </div>
