@@ -73,25 +73,43 @@ export default function GeorefMap({selectedMap}) {
 
   const DraggableMarker = ({controlPoint, isRasterImage, isNew = false}) => {
     console.log('draggable marker for control point : ' + JSON.stringify(controlPoint));
-    const [draggable, setDraggable] = useState(false)
+    const [draggable, setDraggable] = useState(isNew ? true : false)
     const [position, setPosition] = useState(isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint)
-    //const markerRef = useRef(null)
+    const markerRef = useRef(null)
     const eventHandlers = useMemo(
       () => ({
         dragend() {
-          //const marker = markerRef.current
+          const marker = markerRef.current
           if (controlPoint != null) {
-            const point = isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint
-            setPosition(point)
+            // const point = isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint
+            const marker = markerRef.current
+            if (marker != null) {
+              const point = marker.getLatLng();
+              setPosition(point);
+              console.log('setting position to : ' + point);
+
+              if (isRasterImage) {
+                let rc = rasterCoordsRef.current;
+                var coords = rc.project(point);
+                let unprojectedLatLng = rc.unproject(coords);
+                setControlPointSelection({...controlPointSelection, fromPoint : unprojectedLatLng, rasterImageCoords : coords});
+              }
+              else {
+                setControlPointSelection({...controlPointSelection, toPoint  : point});
+              }
+            }
+            // console.log('setting position to : ' + point);
+            // setPosition(point)
           }
-        },
+        }
       }),
-      [],
+      []
     )
+
     const toggleDraggable = useCallback(() => {
       setDraggable((d) => !d)
     }, [])
-  
+
     return (
       <Marker
         // key={key}
@@ -99,7 +117,7 @@ export default function GeorefMap({selectedMap}) {
         eventHandlers={eventHandlers}
         position={position}
         icon={isNew ? newControlPointIcon : existingControlPointIcon}
-        // ref={markerRef}
+        ref={markerRef}
         >
         <Popup minWidth={90}>
           <span onClick={toggleDraggable}>
@@ -182,16 +200,8 @@ export default function GeorefMap({selectedMap}) {
     const rc = new L.RasterCoords(map, img);
     rasterCoordsRef.current = rc; 
 
-    // useEffect(
-    //   () => {
-    //     setRasterCoords((rc) => ({...rasterCoords , rc}))
-    //   },
-    //   [rc],
-    // )
-
-    //const rc = new L.RasterCoords(map, img)
     map.setMaxZoom(rc.zoomLevel())
-    map.setView(rc.unproject([img[0], img[1]]), 2)
+    //map.setView(rc.unproject([img[0], img[1]]), 2)
 
    // setRasterCoords(rc);
 
@@ -225,16 +235,6 @@ export default function GeorefMap({selectedMap}) {
       }
     }, [])
 
-    // const map = L.map('map', {
-    //   crs: L.CRS.Simple
-    // })
-
-    // useMapEvents({
-    //   click(e) {
-    //     const newMarkers = [...markers, { latlng: e.latlng, isOldMap }];
-    //     setMarkers(newMarkers);
-    //   },
-    // });
     return null;
   };
 
