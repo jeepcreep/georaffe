@@ -8,3 +8,10 @@ export const MapStatus = {
     Uploading: 'uploading',
     Ready: 'ready'
 }
+
+export const CurrentControlPointStatus = {
+    FromPointSelected: 'fromPointSelected',
+    ToPointSelected: 'toPointSelected',
+    FreeForSelection: 'freeForSelection',
+    ReadyForSaving: 'readyForSaving'
+}
