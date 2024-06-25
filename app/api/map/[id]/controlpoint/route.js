@@ -1,6 +1,8 @@
 import { deleteFromS3Bucket } from '@utils/s3handler';
 
 import { getMapById, deleteMapById } from '@utils/dbTools';
+import { ControlPointSelection } from '@utils/enums';
+
 
 export const POST = async (req, { params }) => {
     const { controlPoint, controlPointsCount } = await req.json();
@@ -75,17 +77,24 @@ export const PATCH = async (req, { params }) => {
 }
 
 export const DELETE = async (req, { params }) => {
+    const { controlPointId } = await req.json();
+
     try {
         const map = await getMapById(params.id);
-        const fileId = map.fileId;
+        const controlPoint = map.controlPoints.id(controlPointId);
 
-        await deleteFromS3Bucket(fileId, process.env.AWS_S3_TILES_BUCKET);
+        if (controlPoint != null) {
+            controlPoint.deleteOne();
+        }
+        else {
+            return new Response("control point not found.", { status : 400 });
+        }
 
-        await deleteMapById(params.id);
+        await map.save();
 
-        return new Response("Map deleted successfully", { status : 200 });
+        return new Response(JSON.stringify(map), { status : 200 });
     } catch (error) {
         console.log(error);
-        return new Response("Failed to delete map.", { status: 500 });
+        return new Response("Failed to delete control point.", { status: 500 });
     }
 }

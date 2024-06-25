@@ -23,6 +23,10 @@ export default function GeorefMap({selectedMap}) {
   const [controlPointSelection, setControlPointSelection] = useState({});
   const [newlyCreatedControlPoint, setNewlyCreatedControlPoint] = useState(null);
 
+  const [controlPoints, setControlPoints] = useState(selectedMap.controlPoints? selectedMap.controlPoints : []);
+
+  let markers = {};
+
   const center = {
     lat: 53.551,
     lng: 9.993,
@@ -43,6 +47,7 @@ export default function GeorefMap({selectedMap}) {
   });
 
   console.log('selectedMap in georef map', selectedMap);
+  console.log('has ' + controlPointsCountRef.current + ' control points.');
 
   const saveControlPoint = async() => {
     console.log('saving control point selection : ' + JSON.stringify(controlPointSelection));
@@ -67,15 +72,69 @@ export default function GeorefMap({selectedMap}) {
       } finally {
         setControlPointSelection({});
         setControlPointStatus(CurrentControlPointStatus.FreeForSelection);
-    }
+      }
   };
+
+  const deleteControlPoint = async(e, controlPoint, isRasterImage, isNew, markerId) => {
+    L.DomEvent.stopPropagation(e);
+
+    if (isNew) {
+      if (isRasterImage) {
+        const { fromPoint, rasterImageCoords, ...rest } = controlPointSelection;
+        setControlPointSelection(rest);
+      } else {
+        const { toPoint, ...rest } = controlPointSelection;
+        setControlPointSelection(rest);
+      }
+
+      toast.success('New control point deleted successfully!', {
+        position: 'top-left',
+      })
+    }
+    // existing control points
+    else {
+      try {
+        const deleteControlPointResponse = await fetch('/api/map/' + selectedMap._id + '/controlpoint', {
+          method: 'DELETE',
+          body: JSON.stringify({controlPointId : controlPoint._id
+          })
+        })
+  
+        if (deleteControlPointResponse.ok) {  
+            toast.success('Control point deleted successfully!', {
+              position: 'top-left',
+            })
+
+            const modifiedMap = await deleteControlPointResponse.json();
+            setControlPoints(modifiedMap.controlPoints);
+          }
+        } catch (error) {
+            console.log(error);
+        } finally {
+          
+
+          setControlPointSelection({});
+          setControlPointStatus(CurrentControlPointStatus.FreeForSelection);
+
+          //we need to modify the markers object too
+          delete markers.markerId;
+          const twinMarkerId = markerId.includes('to') ? markerId.replace('to', 'from') : markerId.replace('from', 'to');
+          delete markers.twinMarkerId;
+        }
+    }
+  }
   
 
-  const DraggableMarker = ({controlPoint, isRasterImage, isNew = false}) => {
+  const DraggableMarker = ({controlPoint, isRasterImage, isNew = false, markerId}) => {
     console.log('draggable marker for control point : ' + JSON.stringify(controlPoint));
     const [draggable, setDraggable] = useState(isNew ? true : false)
     const [position, setPosition] = useState(isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint)
     const markerRef = useRef(null)
+
+    const index = markerId.substring(markerId.lastIndexOf('-') + 1);
+    const isFrom = markerId.includes('from') ? true : false;
+    const twinMarkerId = 'cp-' + (isFrom ? 'to-' : 'from-') + index;
+
     const eventHandlers = useMemo(
       () => ({
         dragend() {
@@ -101,14 +160,44 @@ export default function GeorefMap({selectedMap}) {
             // console.log('setting position to : ' + point);
             // setPosition(point)
           }
+        },
+        mouseover(event) {
+          console.log('mouse over : ' + markerId);
+
+          if (!markerId.includes('current')) {
+            markerRef.current.setIcon(newControlPointIcon);
+            const twinMarkerRef = markers[twinMarkerId];
+            twinMarkerRef.current.setIcon(newControlPointIcon);
+          }
+        },
+        mouseout(event) {
+          console.log('mouse over : ' + markerId);
+
+          if (!markerId.includes('current')) {
+            markerRef.current.setIcon(existingControlPointIcon);
+            const twinMarkerRef = markers[twinMarkerId];
+            twinMarkerRef.current.setIcon(existingControlPointIcon);
+          }
         }
       }),
       []
     )
 
-    const toggleDraggable = useCallback(() => {
+    markers[markerId] = markerRef;
+
+    const toggleDraggable = useCallback((e) => {
+      L.DomEvent.stopPropagation(e);
+
+      toast('Editing control point. Click and drag it to its new position.', {
+        position: 'top-left',
+      })
+
       setDraggable((d) => !d)
+
+      markerRef.current.setIcon(newControlPointIcon); 
+      markerRef.current.closePopup();
     }, [])
+
 
     return (
       <Marker
@@ -120,11 +209,29 @@ export default function GeorefMap({selectedMap}) {
         ref={markerRef}
         >
         <Popup minWidth={90}>
-          <span onClick={toggleDraggable}>
+          {/* <span onClick={toggleDraggable}>
             {draggable
               ? 'Marker is draggable'
               : 'Click here to make marker draggable'}
-          </span>
+          </span> */}
+          <div className='w-full flex-center flex-row my-2.5'>
+            {/* <div>
+            Lat/Lng : 
+              {
+                isRasterImage ?
+                  controlPoint.fromPoint[0].toFixed(4) + '/' + controlPoint.fromPoint[1].toFixed(4)
+                :
+                  controlPoint.toPoint[0].toFixed(4) + '/' + controlPoint.toPoint[1].toFixed(4)
+              }
+            </div> */}
+            <div className='w-full flex-center flex-row my-2.5'>
+              {!isNew ? (
+                <span className='mx-1.5'><Button onClick={(e) => toggleDraggable(e)}>Edit</Button></span>
+              ) : ( <></>)
+              }
+              <span className='mx-1.5'><Button key="delete-control-point-button" color="failure" onClick={(e) => deleteControlPoint(e, controlPoint, isRasterImage, isNew, markerId)}>Delete</Button></span>
+            </div>
+          </div>
         </Popup>
       </Marker>
     )
@@ -247,23 +354,26 @@ export default function GeorefMap({selectedMap}) {
             <Suspense fallback={<Loading />}>
               <TileLayerWithRasterCoords selectedMap={selectedMap} />
             </Suspense>
-            {selectedMap.controlPoints ? selectedMap.controlPoints.map((controlPoint, idx) => (
+            {controlPoints.length > 0 ? controlPoints.map((controlPoint, idx) => (
                   <DraggableMarker key={idx} 
                     controlPoint={controlPoint}
                     isRasterImage={true}
+                    markerId={'cp-from-' + controlPoint.index}
                   />
               )) : ( <></>)}
               {controlPointSelection && controlPointSelection.fromPoint ? (
-                  <DraggableMarker key={'current-control-point-from'} 
+                  <DraggableMarker key={'cp-from-current'} 
                     controlPoint={controlPointSelection}
                     isRasterImage={true}
                     isNew={true}
+                    markerId={'cp-from-current'} 
                   />
               ) : ( <></>)}
               {newlyCreatedControlPoint ? (
                   <DraggableMarker key={newlyCreatedControlPoint.index} 
                     controlPoint={newlyCreatedControlPoint}
                     isRasterImage={true}
+                    markerId={'cp-from-' + newlyCreatedControlPoint.index}
                   />
               ) : ( <></>)}
             <AddMarker isRasterImage={true}/>
@@ -276,23 +386,26 @@ export default function GeorefMap({selectedMap}) {
                   url={'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
                   attribution={'&copy; OpenStreetMap contributors'}
               />
-              {selectedMap.controlPoints ? selectedMap.controlPoints.map((controlPoint, idx) => (
+              {controlPoints.length > 0 ? controlPoints.map((controlPoint, idx) => (
                   <DraggableMarker key={idx} 
                     controlPoint={controlPoint}
                     isRasterImage={false}
+                    markerId={'cp-to-' + controlPoint.index}
                   />
               )) : ( <></>)}
               {controlPointSelection && controlPointSelection.toPoint ? (
-                  <DraggableMarker key={'current-control-point-to'} 
+                  <DraggableMarker key={'cp-to-current'} 
                     controlPoint={controlPointSelection}
                     isRasterImage={false}
                     isNew={true}
+                    markerId={'cp-to-current'} 
                   />
               ) : ( <></>)}
               {newlyCreatedControlPoint ? (
                   <DraggableMarker key={newlyCreatedControlPoint.index} 
                     controlPoint={newlyCreatedControlPoint}
                     isRasterImage={false}
+                    markerId={'cp-to-' + newlyCreatedControlPoint.index}
                   />
               ) : ( <></>)}
               <AddMarker isRasterImage={false}/>

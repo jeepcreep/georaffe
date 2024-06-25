@@ -18,7 +18,7 @@ const ControlPointSchema = new Schema({
         type: [Number],
         required: [true, 'rasterImageCoords (x, y coords of raster image) is required.']
     }
-})
+}, { timestamps: true, })
 
 ControlPointSchema.pre('save', (next) => {
     console.log('pre save for control point : ' + this)
