@@ -13,7 +13,8 @@ export const CurrentControlPointStatus = {
     FromPointSelected: 'fromPointSelected',
     ToPointSelected: 'toPointSelected',
     FreeForSelection: 'freeForSelection',
-    ReadyForSaving: 'readyForSaving'
+    ReadyForSaving: 'readyForSaving',
+    EditExisting: 'editExisting'
 }
 
 export const ControlPointSelection = {

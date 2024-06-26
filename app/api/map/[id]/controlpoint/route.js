@@ -5,7 +5,7 @@ import { ControlPointSelection } from '@utils/enums';
 
 
 export const POST = async (req, { params }) => {
-    const { controlPoint, controlPointsCount } = await req.json();
+    const { controlPoint } = await req.json();
 
     try {
         const existingMap = await getMapById(params.id);
@@ -13,9 +13,7 @@ export const POST = async (req, { params }) => {
         if (!existingMap) return new Response("Map not found!", { status : 404 });
 
         console.log('trying to create control point : ' + controlPoint);
-        console.log('existing count : ' + controlPointsCount);
         const newControlPointObj = {
-            index: controlPointsCount + 1,
             fromPoint: [ controlPoint.fromPoint.lat, controlPoint.fromPoint.lng ],
             toPoint: [ controlPoint.toPoint.lat, controlPoint.toPoint.lng ],
             rasterImageCoords: [ controlPoint.rasterImageCoords.x, controlPoint.rasterImageCoords.y ]
@@ -47,32 +45,34 @@ export const GET = async (req, { params }) => {
 }
 
 export const PATCH = async (req, { params }) => {
-    const { status, fileId, width, height } = await req.json();
+    const { controlPoint } = await req.json();
 
     try {
         const existingMap = await getMapById(params.id);
 
         if (!existingMap) return new Response("Map not found!", { status : 404 });
 
-        if (status) {
-            existingMap.status = status;
-        }
-        if (fileId) {
-            existingMap.fileId = fileId;
-        }
-        if (width) {
-            existingMap.width = width;
-        }
-        if (height) {
-            existingMap.height = height;
-        }
+        console.log('trying to save control point : ' + controlPoint);
+        // const newControlPointObj = {
+        //     fromPoint: [ controlPoint.fromPoint.lat, controlPoint.fromPoint.lng ],
+        //     toPoint: [ controlPoint.toPoint.lat, controlPoint.toPoint.lng ],
+        //     rasterImageCoords: [ controlPoint.rasterImageCoords.x, controlPoint.rasterImageCoords.y ]
+        // };
+
+        //update existing control point
+        existingMap.controlPoints.id(controlPoint._id).fromPoint = [ controlPoint.fromPoint.lat, controlPoint.fromPoint.lng ];
+        existingMap.controlPoints.id(controlPoint._id).toPoint = [ controlPoint.toPoint.lat, controlPoint.toPoint.lng ];
+        existingMap.controlPoints.id(controlPoint._id).rasterImageCoords = [ controlPoint.rasterImageCoords.x, controlPoint.rasterImageCoords.y ];
+        existingMap.markModified('controlPoints');
 
         await existingMap.save();
 
-        return new Response(JSON.stringify(existingMap, { status : 200 }));
+        console.log('creation of new control point successful!, id : ' + controlPoint._id);
+
+        return new Response(JSON.stringify(controlPoint, { status : 201 }));
     } catch (error) {
         console.log(error);
-        return new Response("Failed to update map.", { status: 500 });
+        return new Response("Failed to create control point.", { status: 500 });
     }
 }
 

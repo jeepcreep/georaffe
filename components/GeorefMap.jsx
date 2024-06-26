@@ -18,10 +18,9 @@ import { CurrentControlPointStatus } from "@utils/enums";
 
 export default function GeorefMap({selectedMap}) {
   let rasterCoordsRef = useRef(null);
-  let controlPointsCountRef = useRef(selectedMap.controlPoints ? selectedMap.controlPoints.length : 0)
-  const [controlPointStatus, setControlPointStatus] = useState(CurrentControlPointStatus.FreeForSelection);
+  //const [controlPointStatus, setControlPointStatus] = useState(CurrentControlPointStatus.FreeForSelection);
   const [controlPointSelection, setControlPointSelection] = useState({});
-  const [newlyCreatedControlPoint, setNewlyCreatedControlPoint] = useState(null);
+  let controlPointStatus = useRef(CurrentControlPointStatus.FreeForSelection);
 
   const [controlPoints, setControlPoints] = useState(selectedMap.controlPoints? selectedMap.controlPoints : []);
 
@@ -47,21 +46,20 @@ export default function GeorefMap({selectedMap}) {
   });
 
   console.log('selectedMap in georef map', selectedMap);
-  console.log('has ' + controlPointsCountRef.current + ' control points.');
 
-  const saveControlPoint = async() => {
+  const saveControlPoint = async(isNew) => {
     console.log('saving control point selection : ' + JSON.stringify(controlPointSelection));
     try {
-      const createNewControlPointResponse = await fetch('/api/map/' + selectedMap._id + '/controlpoint', {
-        method: 'POST',
-        body: JSON.stringify({controlPoint : controlPointSelection,
-          controlPointsCount: controlPointsCountRef.current
+      const saveControlPointResponse = await fetch('/api/map/' + selectedMap._id + '/controlpoint', {
+        method: isNew ? 'POST' : 'PATCH',
+        body: JSON.stringify({controlPoint : controlPointSelection
         })
       })
 
-      if (createNewControlPointResponse.ok) {
-          const newControlPoint = await createNewControlPointResponse.json();
-          setNewlyCreatedControlPoint(newControlPoint);
+      if (saveControlPointResponse.ok) {
+          const newControlPoint = await saveControlPointResponse.json();
+
+          setControlPoints([...controlPoints, newControlPoint]);
 
           toast.success('New control point created successfully!', {
             position: 'top-left',
@@ -71,7 +69,8 @@ export default function GeorefMap({selectedMap}) {
           console.log(error);
       } finally {
         setControlPointSelection({});
-        setControlPointStatus(CurrentControlPointStatus.FreeForSelection);
+        //setControlPointStatus(CurrentControlPointStatus.FreeForSelection);
+        controlPointStatus.current = CurrentControlPointStatus.FreeForSelection;
       }
   };
 
@@ -114,7 +113,8 @@ export default function GeorefMap({selectedMap}) {
           
 
           setControlPointSelection({});
-          setControlPointStatus(CurrentControlPointStatus.FreeForSelection);
+          //setControlPointStatus(CurrentControlPointStatus.FreeForSelection);
+          controlPointStatus.current = CurrentControlPointStatus.FreeForSelection;
 
           //we need to modify the markers object too
           delete markers.markerId;
@@ -127,13 +127,14 @@ export default function GeorefMap({selectedMap}) {
 
   const DraggableMarker = ({controlPoint, isRasterImage, isNew = false, markerId}) => {
     console.log('draggable marker for control point : ' + JSON.stringify(controlPoint));
-    const [draggable, setDraggable] = useState(isNew ? true : false)
-    const [position, setPosition] = useState(isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint)
-    const markerRef = useRef(null)
+    //const [draggable, setDraggable] = useState(isNew ? true : false)
+    //const [position, setPosition] = useState(isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint)
+    let markerRef = useRef(null)
+    let draggable = useRef(isNew ? true : false);
+    let position = useRef(isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint);
 
-    const index = markerId.substring(markerId.lastIndexOf('-') + 1);
     const isFrom = markerId.includes('from') ? true : false;
-    const twinMarkerId = 'cp-' + (isFrom ? 'to-' : 'from-') + index;
+    const twinMarkerId = 'cp-' + (isFrom ? 'to-' : 'from-') + controlPoint._id;
 
     const eventHandlers = useMemo(
       () => ({
@@ -144,7 +145,8 @@ export default function GeorefMap({selectedMap}) {
             const marker = markerRef.current
             if (marker != null) {
               const point = marker.getLatLng();
-              setPosition(point);
+              //setPosition(point);
+              position.current = point;
               console.log('setting position to : ' + point);
 
               if (isRasterImage) {
@@ -185,17 +187,33 @@ export default function GeorefMap({selectedMap}) {
 
     markers[markerId] = markerRef;
 
-    const toggleDraggable = useCallback((e) => {
+    const editControlPoint = useCallback((e, controlPoint, markerId) => {
       L.DomEvent.stopPropagation(e);
 
-      toast('Editing control point. Click and drag it to its new position.', {
+      toast('Editing control point. Click and drag it to its new position, then hit Save.', {
         position: 'top-left',
       })
 
-      setDraggable((d) => !d)
+      // we make the existing control point a selection
+      setControlPointSelection(controlPoint);
+      // hence we need to temporarily remove it from the persisted control points
+      setControlPoints(
+        controlPoints.filter(a =>
+          a._id !== controlPoint._id
+        )
+      );
+      controlPointStatus.current = CurrentControlPointStatus.EditExisting;
+
+      //setDraggable((d) => !d)
+      draggable.current = !draggable;
 
       markerRef.current.setIcon(newControlPointIcon); 
       markerRef.current.closePopup();
+
+      // don't forget the twin
+      const twinMarkerId = markerId.includes('to') ? markerId.replace('to', 'from') : markerId.replace('from', 'to');
+      const twinMarkerRef = markers[twinMarkerId];
+      twinMarkerRef.current.setIcon(newControlPointIcon);
     }, [])
 
 
@@ -204,7 +222,7 @@ export default function GeorefMap({selectedMap}) {
         // key={key}
         draggable={draggable}
         eventHandlers={eventHandlers}
-        position={position}
+        position={position.current}
         icon={isNew ? newControlPointIcon : existingControlPointIcon}
         ref={markerRef}
         >
@@ -226,7 +244,7 @@ export default function GeorefMap({selectedMap}) {
             </div> */}
             <div className='w-full flex-center flex-row my-2.5'>
               {!isNew ? (
-                <span className='mx-1.5'><Button onClick={(e) => toggleDraggable(e)}>Edit</Button></span>
+                <span className='mx-1.5'><Button onClick={(e) => editControlPoint(e, controlPoint, markerId)}>Edit</Button></span>
               ) : ( <></>)
               }
               <span className='mx-1.5'><Button key="delete-control-point-button" color="failure" onClick={(e) => deleteControlPoint(e, controlPoint, isRasterImage, isNew, markerId)}>Delete</Button></span>
@@ -249,34 +267,34 @@ export default function GeorefMap({selectedMap}) {
           latlng = rc.unproject(coords);
           console.log('raster image coords : ' + coords);
 
-          if (controlPointStatus == CurrentControlPointStatus.ToPointSelected || controlPointStatus == CurrentControlPointStatus.ReadyForSaving) {
-            setControlPointStatus(CurrentControlPointStatus.ReadyForSaving);
+          if (controlPointStatus.current == CurrentControlPointStatus.ToPointSelected || controlPointStatus.current == CurrentControlPointStatus.ReadyForSaving) {
+            //setControlPointStatus(CurrentControlPointStatus.ReadyForSaving);
+            controlPointStatus.current = CurrentControlPointStatus.ReadyForSaving;
             console.log('ready for saving!');
           }
           else {
-            setControlPointStatus(CurrentControlPointStatus.FromPointSelected);
+            //setControlPointStatus(CurrentControlPointStatus.FromPointSelected);
+            controlPointStatus.current = CurrentControlPointStatus.FromPointSelected;
             console.log('from point set!');
           }
           setControlPointSelection({...controlPointSelection, fromPoint : latlng, rasterImageCoords : coords});
         }
         else {
-          if (controlPointStatus == CurrentControlPointStatus.FromPointSelected || controlPointStatus == CurrentControlPointStatus.ReadyForSaving) {
-            setControlPointStatus(CurrentControlPointStatus.ReadyForSaving);
+          if (controlPointStatus.current == CurrentControlPointStatus.FromPointSelected || controlPointStatus.current == CurrentControlPointStatus.ReadyForSaving) {
+            //setControlPointStatus(CurrentControlPointStatus.ReadyForSaving);
+            controlPointStatus.current = CurrentControlPointStatus.ReadyForSaving;
             console.log('ready for saving!');
           }
           else {
-            setControlPointStatus(CurrentControlPointStatus.ToPointSelected);
+            //setControlPointStatus(CurrentControlPointStatus.ToPointSelected);
+            controlPointStatus.current = CurrentControlPointStatus.ToPointSelected;
             console.log('to point set!');
           }
           setControlPointSelection({...controlPointSelection, toPoint : latlng});
         }
         console.log('lat/lng : ' + latlng);
         console.log('controlPointSelection : ' + JSON.stringify(controlPointSelection));
-        
-        // const newMarkers = [...markers, { latlng: e.latlng, isOldMap }];
-        // const newMarkers = [...markers, { latlng }];
-        // console.log('new marker : ' + newMarkers);
-        // setMarkers(newMarkers);
+      
       },
     });
     return null;
@@ -310,19 +328,6 @@ export default function GeorefMap({selectedMap}) {
     map.setMaxZoom(rc.zoomLevel())
     //map.setView(rc.unproject([img[0], img[1]]), 2)
 
-   // setRasterCoords(rc);
-
-    // map.on('click', function (event) {
-    //   // any position in leaflet needs to be projected to obtain the image coordinates
-    //   var coords = rc.project(event.latlng)
-    //   var marker = L.marker(rc.unproject(coords), {
-    //     draggable: true
-    //   })
-    //     .addTo(map)
-    //   marker.bindPopup('[' + Math.floor(coords.x) + ',' + Math.floor(coords.y) + ']')
-    //     .openPopup()
-    // })
-
     const s3ImageUrl = selectedMap != null ? getFullImageUrl(selectedMap.fileId) : '';
     console.log('s3ImageUrl', s3ImageUrl);
 
@@ -355,10 +360,10 @@ export default function GeorefMap({selectedMap}) {
               <TileLayerWithRasterCoords selectedMap={selectedMap} />
             </Suspense>
             {controlPoints.length > 0 ? controlPoints.map((controlPoint, idx) => (
-                  <DraggableMarker key={idx} 
+                  <DraggableMarker key={'cp-from-' + controlPoint._id} 
                     controlPoint={controlPoint}
                     isRasterImage={true}
-                    markerId={'cp-from-' + controlPoint.index}
+                    markerId={'cp-from-' + controlPoint._id}
                   />
               )) : ( <></>)}
               {controlPointSelection && controlPointSelection.fromPoint ? (
@@ -367,13 +372,6 @@ export default function GeorefMap({selectedMap}) {
                     isRasterImage={true}
                     isNew={true}
                     markerId={'cp-from-current'} 
-                  />
-              ) : ( <></>)}
-              {newlyCreatedControlPoint ? (
-                  <DraggableMarker key={newlyCreatedControlPoint.index} 
-                    controlPoint={newlyCreatedControlPoint}
-                    isRasterImage={true}
-                    markerId={'cp-from-' + newlyCreatedControlPoint.index}
                   />
               ) : ( <></>)}
             <AddMarker isRasterImage={true}/>
@@ -387,10 +385,10 @@ export default function GeorefMap({selectedMap}) {
                   attribution={'&copy; OpenStreetMap contributors'}
               />
               {controlPoints.length > 0 ? controlPoints.map((controlPoint, idx) => (
-                  <DraggableMarker key={idx} 
+                  <DraggableMarker key={'cp-to-' + controlPoint._id} 
                     controlPoint={controlPoint}
                     isRasterImage={false}
-                    markerId={'cp-to-' + controlPoint.index}
+                    markerId={'cp-to-' + controlPoint._id}
                   />
               )) : ( <></>)}
               {controlPointSelection && controlPointSelection.toPoint ? (
@@ -401,13 +399,6 @@ export default function GeorefMap({selectedMap}) {
                     markerId={'cp-to-current'} 
                   />
               ) : ( <></>)}
-              {newlyCreatedControlPoint ? (
-                  <DraggableMarker key={newlyCreatedControlPoint.index} 
-                    controlPoint={newlyCreatedControlPoint}
-                    isRasterImage={false}
-                    markerId={'cp-to-' + newlyCreatedControlPoint.index}
-                  />
-              ) : ( <></>)}
               <AddMarker isRasterImage={false}/>
             
             </MapContainer>
@@ -415,8 +406,12 @@ export default function GeorefMap({selectedMap}) {
 
       </div>
       <div className='w-full flex-center flex-row my-2.5'>
-        {controlPointStatus == CurrentControlPointStatus.ReadyForSaving ? (
-          <Button onClick={() => saveControlPoint()}>Save control point</Button>
+        {controlPointStatus.current == CurrentControlPointStatus.ReadyForSaving ? (
+          <Button onClick={() => saveControlPoint(true)}>Save control point</Button>
+        ) : ( <></>)
+        }
+        {controlPointStatus.current == CurrentControlPointStatus.EditExisting ? (
+          <Button onClick={() => saveControlPoint(false)}>Save changes</Button>
         ) : ( <></>)
         }
       </div>

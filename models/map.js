@@ -2,10 +2,6 @@ import { Schema, model, models } from 'mongoose';
 import { MapStatus } from '@utils/enums';
 
 const ControlPointSchema = new Schema({
-    index: {
-        type: Number,
-        required: [true, 'index is required.']
-    },
     fromPoint: {
         type: [Number],
         required: [true, 'fromPoint (virtual lat and long) is required.']
