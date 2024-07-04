@@ -1,4 +1,16 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Welcome to GeoRaffe, 
+
+a full-fledged platform for georeferencing and georectifying raster images. Uploaded images will automatically be tiled (using a modified version of gdal2tiles), uploaded to an S3 bucket and served as XYZ tiles.
+The workflow is as such:
+
+* sign up using Google
+* upload a new map file (PNG or JPG, max. 20MB), give it a meaningful title and a maximum zoom-level which is used for the depth of tiling (will drastically increase number of tiles and overall space needed but makes zooming in on larger map files more performant)
+* start the georeferencing process by looking for identical landmarks on both your uploaded images and the reference OSM map, click on the actual position as precisely as possible on both panes respectively (these points in GIS jargon are called 'ground control points' or GCPs)
+* you can click and drag any GCP until you are content with its position, then click on "save control point" after
+* existing GCPs can later be edited or deleted by clicking them and choosing the according action (note that the according action will be executed on either GCP)
+* after having set at least 3 GCPs, an "Overlay map" button will appear on top of the panes
+* click it to see the georeferenced images georectified ("rubbersheet") form as overlay image on top of the OSM map
+* you can verify how well the control points have been set by using the opacity slider on top of the overlay pane
 
 ## Getting Started
 
@@ -14,23 +26,5 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the page in action.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
