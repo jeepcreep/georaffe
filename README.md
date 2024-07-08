@@ -14,6 +14,15 @@ The workflow is as such:
 
 ## Getting Started
 
+Prerequisites for tiling the uploaded images:
+
+* gdal (https://gdal.org/) >= 3.6.0
+    * either have this installed globally
+    * or via conda:
+        * `conda create -n gdal python=3.9`
+        * `conda activate gdal` or `source activate gdal`
+        * `conda install gdal`
+
 First, run the development server:
 
 ```bash

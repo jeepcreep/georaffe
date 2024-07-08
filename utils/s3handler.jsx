@@ -22,12 +22,12 @@ const s3Client = new S3Client({
     },
 });
 
-export const uploadToS3Bucket = async (file, s3Filename, bucket) => {
+export const uploadToS3Bucket = async (file, s3Filename, bucket, contentType = 'image/png') => {
     const params = {
       Bucket: bucket, // required
       Key: s3Filename, // required
       Body: file,
-      ContentType: "image/png"
+      ContentType: contentType
     };
 
     const command = new PutObjectCommand(params);

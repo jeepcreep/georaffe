@@ -1,5 +1,5 @@
 import connectToDatabase  from '@utils/database';
-import { saveImageLocally, createTilesFromImage } from '@utils/tilingImagesHandler'
+import { saveImageLocally, createTilesFromImage, saveSizeReducedCopy, uploadReducedImage } from '@utils/imageHandler'
 
 import { getMapById } from '@utils/dbTools';
 
@@ -24,8 +24,11 @@ export const POST = async (req, { params }) => {
         const mapId = params.id;
         const map = await getMapById(mapId);
         // first save it locally
-        const localFilePath = await saveImageLocally(file, mapId);
+        let localFilePath = await saveImageLocally(file, mapId);
         let statusText = 'image saved locally ';
+
+        const pathForReducedImage = await saveSizeReducedCopy(localFilePath);
+        await uploadReducedImage(pathForReducedImage);
 
         if (localFilePath) {
             // then trigger the tiling process (calls an external tool)

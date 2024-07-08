@@ -32,7 +32,8 @@
     "react-hot-toast": "^2.4.1",
     "react-leaflet": "^4.2.1",
     "react-pro-sidebar": "^1.1.0",
-    "sass": "^1.77.1"
+    "sass": "^1.77.1",
+    "sharp": "^0.33.4"
   },
   "devDependencies": {
     "postcss": "^8",

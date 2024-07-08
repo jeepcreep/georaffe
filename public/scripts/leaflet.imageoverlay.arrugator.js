@@ -1858,6 +1858,7 @@ For valid format/type combinations of framebuffer attachments, see https://www.k
 				this._redraw();
 			};
 
+			rasterImage.crossOrigin = "anonymous";
 			rasterImage.src = this._src;
 
 			const {
