@@ -86,9 +86,14 @@ export default function OverlayMap({selectedMap}) {
             // }
             // image.src = '/assets/images/Ion6X7C.jpeg';
 
+            const filename = selectedMap.fileId;
+            const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+            const fileExt = filename.substring(filename.lastIndexOf('.') + 1);
+            const fullUrl = `https://${process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_S3_REGION}.amazonaws.com/${filenameWithoutExt}/${filenameWithoutExt}_reduced.${fileExt}`;        
+
             const arrugatorLayer = L.imageOverlay.arrugator(
                 // First argument to the factory/constructor is the URL of the image. Only png/jpg.
-                '/assets/images/1651_mejer_300dpi.jpeg',
+                fullUrl,
                 {
                     // The "controlPoints" option must be an array of arrays of numbers, containing
                     // the coordinates in the source CRS of the four corners of the image, as follows:
