@@ -31,9 +31,6 @@ const RootLayout = ( {children} ) => {
             <Toaster />
             <Provider>
     
-                <div className="main">
-                    <div className="gradient" />
-                </div>
                 <main className="app">
                     <Nav />
                     <Suspense fallback={<Loading />}>

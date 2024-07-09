@@ -12,9 +12,9 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { useEffect, useMemo, useRef, useCallback } from 'react'
 import toast from 'react-hot-toast';
-import { RangeSlider, Label } from "flowbite-react";
+import { RangeSlider, Label, Dropdown } from "flowbite-react";
 import Loading from './loading';
-import { CurrentControlPointStatus } from "@utils/enums";
+import { TransformationType, TransformationTypes, TransformationTypeLabels, TransformationTypesMinGCP } from "@utils/enums";
 
 import { GcpTransformer } from '@allmaps/transform';
 
@@ -24,6 +24,7 @@ import { t } from 'numeric';
 export default function OverlayMap({selectedMap}) {
     //const [opacityLevel, setOpacityLevel] = useState(1);
     const [gl, setGL] = useState(null);
+    const [transformationType, setTransformationType] = useState(TransformationType.Polynomial);
     let canvasRef = useRef(null);
 
     const setOpacity = (value) => {
@@ -31,6 +32,26 @@ export default function OverlayMap({selectedMap}) {
             value /= 100;
         }
         L.DomUtil.setOpacity(canvasRef.current, value.toFixed(2));
+    }
+
+    const TransformationTypeItem = ({type}) => {
+        const gcpCount = selectedMap.controlPoints?.length;
+
+        console.log('type : ' + type);
+        if (gcpCount >= TransformationTypesMinGCP[type]) {
+            return (
+                <Dropdown.Item value={type} onClick={() => setTransformationType(type)} className={transformationType == type ? 'selected_item' : ''}>
+                    {TransformationTypeLabels[type]}
+                </Dropdown.Item>
+            )
+        }
+        else {
+            return ( 
+                <Dropdown.Item value={type} disabled className='disabled_item'>
+                    {TransformationTypeLabels[type]} (needs {TransformationTypesMinGCP[type]} GCPs)
+                </Dropdown.Item>
+            )
+        }
     }
 
     const GeoRefOverlay = ({selectedMap}) => {
@@ -46,10 +67,12 @@ export default function OverlayMap({selectedMap}) {
         console.log('transformGcps : ' + transformGcps);
 
         const options = {
-            differentHandedness: true
+            differentHandedness: true,
+            maxOffsetRatio: 5,
+            maxDepth: 100
         }
 
-        const transformer = new GcpTransformer(transformGcps, 'polynomial')
+        const transformer = new GcpTransformer(transformGcps, transformationType)
         //const transformedPoint = transformer.transformForward([4146.178, 1424], options)
         const pointTopLeft = transformer.transformForward([0, 0], options);
         const pointBottomLeft = transformer.transformForward([0, selectedMap.height], options);
@@ -169,7 +192,7 @@ export default function OverlayMap({selectedMap}) {
   return (
     <section className='w-full flex-center flex-col'>
         <div className='w-full flex-center flex-row'>
-            <div>
+            <div className='w-1/2 flex-center flex-col'>
                 <RangeSlider 
                     id="opacity-level" 
                     min="0.1" 
@@ -179,6 +202,14 @@ export default function OverlayMap({selectedMap}) {
                 <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
                         Set opacity to see how well the overlay works
                 </div>
+            </div>
+            <div className='w-1/2 flex-center flex-col'>
+                <Dropdown label="Transformation type" className='transformTypeSelection'>
+                    {TransformationTypes.map((type) => (
+                        <TransformationTypeItem key={type} type={type} />
+                    )
+                    )}
+                </Dropdown>
             </div>
         </div>
       <div className='w-full flex-center flex-row'>

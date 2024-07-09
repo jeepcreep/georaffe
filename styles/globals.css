@@ -80,6 +80,10 @@
   z-index: 10000;
 }
 
+.transformTypeSelection {
+  z-index: 10000;
+}
+
 .display_none {
   display: none;
 }
@@ -184,4 +188,16 @@
 
 .flex-between {
   @apply flex justify-between items-center;
+}
+
+.disabled_item {
+  @apply cursor-not-allowed text-gray-400;
+}
+
+.selected_item {
+  @apply bg-gray-200;
+}
+
+.selectable_item {
+  cursor: pointer;
 }
