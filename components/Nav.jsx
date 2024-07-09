@@ -23,26 +23,27 @@ const Nav = () => {
     }, [])
 
   return (
-    <nav className='flex-between w-full mb-16 pt-3'>
+    <nav className='flex-between w-full mb-8 pt-3'>
+
         <Link href="/" className="flex gap-2 flex-center">
-            <Image 
-                src="/assets/images/logo.svg"
-                alt="Promptopia Logo"
-                width={30}
-                height={30}
-                className="object-contain"
-            />
-            <p className='logo_text'>GeoRef</p>
+            <div className='w-full flex-center flex-col'>
+                <div className='w-full flex-center flex-row'>
+                    <h1 className='head_text text-center'>
+                        GeoRaffe
+                    </h1>
+                </div>
+                <div className='w-full flex-center flex-row'>
+                    <h2 className='subhead_text text-center'>
+                    <span className='orange_gradient text-center'>Next-level georeferencing</span>
+                    </h2>
+                </div>
+            </div>
         </Link>
 
         { /* Desktop Nav */ }
         <div className='sm:flex hidden'>
             {session?.user ? (
                 <div className='flex gap-3 md:gap-5'>
-                    <Link href="/create-prompt"
-                    className='black_btn'>
-                        Create Post
-                    </Link>
 
                     <button type="button" onClick={signOut}
                     className='outline_btn'>

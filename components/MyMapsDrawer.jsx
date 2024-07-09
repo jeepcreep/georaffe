@@ -39,6 +39,12 @@ export default function MyMapsDrawer({ maps, setMaps, selectedMap, setSelectedMa
     }
   }
 
+  const getFullImageUrl = (fileId) => {
+    const filenameWithoutExt = fileId.substring(0, fileId.lastIndexOf('.'));
+    let fullUrl = `https://${process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_S3_REGION}.amazonaws.com/${filenameWithoutExt}/tiles/0/0/0.png`;
+    return fullUrl;
+  }
+
   const handleSelectMap = async (mapId) => {
     try {
       const response = await fetch(`/api/map/${mapId}`, {
@@ -47,7 +53,8 @@ export default function MyMapsDrawer({ maps, setMaps, selectedMap, setSelectedMa
 
       const map = await response.json();
       // we need to wrap it in an array because this is the expected underlying data structure
-      setSelectedMap([map]);
+      const responseMap = map;
+      setSelectedMap(responseMap);
 
     } catch (error) {
         console.log(error);
@@ -60,12 +67,12 @@ export default function MyMapsDrawer({ maps, setMaps, selectedMap, setSelectedMa
       <>
         {data.map((map) => (
           // <Sidebar.Item key={map._id} href={`/api/map/${map._id}`}>
-          <Sidebar.Item key={map._id} onClick={() => handleSelectMap(map._id)}>
+          <Sidebar.Item key={map._id} onClick={() => handleSelectMap(map._id)} className={selectedMap._id == map._id ? 'selected_item selectable_item' : 'selectable_item'}>
             {map.status == MapStatus.Ready ? ( 
             <div className="flex h-full flex-row justify-between py-2">
-              <div  className="flex flow-row px-2 text-cyan-600 hover:no-underline dark:text-cyan-500">
-                <Avatar img={map.fileUrl} className="px-2"/>
-                <span>{map.title}</span>{(selectedMap != null && selectedMap._id == map._id) ? ( <div>(*)</div>) : (<></>)}
+              <div className='flex flow-row px-2 text-cyan-600 hover:no-underline dark:text-cyan-500'>
+                <Avatar img={getFullImageUrl(map.fileId)} className="px-2"/>
+                <span>{map.title}</span>
               </div>
               <Dropdown placement="left" label="" dismissOnClick={false} renderTrigger={() => <span className="cursor-pointer"><HiDotsVertical /></span>}>
                 <Dropdown.Item onClick={() => handleDelete(map._id)}>Delete</Dropdown.Item>

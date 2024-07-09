@@ -44,14 +44,16 @@ const Home = () => {
 
       setMaps(data);
 
-      let urlParams = '?selectedMap=newest'
-      fetch('/api/map' + urlParams)
-        .then((res) => res.json())
-        .then((selectedMap) => {
-          setSelectedMap(selectedMap[0])
-          setLoading(false)
-      })
-
+      if (!selectedMap) {
+        let urlParams = '?selectedMap=newest'
+        fetch('/api/map' + urlParams)
+          .then((res) => res.json())
+          .then((selectedMap) => {
+            setSelectedMap(selectedMap[0])
+            setLoading(false)
+        })
+      }
+      
       // const selectedMapResponse = await fetch(process.env.HOST_BASE_URL_DEV + '/api/map' + urlParams);
       // const selectedMapData = await selectedMapResponse.json();
 
@@ -60,6 +62,8 @@ const Home = () => {
 
     fetchMaps();
   }, [])
+
+  // console.log('selectedMap on page level : ' + selectedMap);
 
   const toggleOverlayMap = () => {
     setDisplayOverlayMap(!displayOverlayMap);
@@ -71,14 +75,9 @@ const Home = () => {
   return (
 
     <section className='w-full flex-center flex-col'>
-        <h1 className='head_text text-center'>
-            GeoRef
-        </h1>
-        <h2 className='subhead_text text-center'>
-          <span className='orange_gradient text-center'>Next-level georeferencing</span>
-        </h2>
+        
         <p className='desc text-center'>
-            GeoRef is your stop for comparing
+            GeoRaffe is your stop for comparing
             geographical maps with one another
         </p>
         <div className='w-full flex-center flex-row my-2.5'>

@@ -18,11 +18,26 @@ import { CurrentControlPointStatus } from "@utils/enums";
 
 export default function GeorefMap({selectedMap}) {
   let rasterCoordsRef = useRef(null);
+  if (rasterCoordsRef !== null) {
+    rasterCoordsRef.current = null;
+  }
   //const [controlPointStatus, setControlPointStatus] = useState(CurrentControlPointStatus.FreeForSelection);
   const [controlPointSelection, setControlPointSelection] = useState({});
   let controlPointStatus = useRef(CurrentControlPointStatus.FreeForSelection);
 
   const [controlPoints, setControlPoints] = useState(selectedMap.controlPoints? selectedMap.controlPoints : []);
+
+  console.log('no of control points : ' + controlPoints.length);
+
+  useEffect(() => {
+
+    setControlPoints(selectedMap.controlPoints? selectedMap.controlPoints : []);
+
+    return () => {
+      
+    }
+
+  }, [selectedMap]);
 
   let markers = {};
 
@@ -352,8 +367,12 @@ export default function GeorefMap({selectedMap}) {
 
   return (
     <section className='w-full flex-center flex-col'>
+
+        <div className='w-full flex-center flex-row my-1'>
+          {controlPoints.length > 0 ? controlPoints.length + ' control points selected' : ''}
+        </div>  
       <div className='w-full flex-center flex-row'>
-          
+
           <div className='w-1/2 mx-2.5'>
             <MapContainer center={[53.55, 10]} zoom={2} style={{ height: '500px', width: '100%' }}>
             <Suspense fallback={<Loading />}>

@@ -22,3 +22,35 @@ export const ControlPointSelection = {
     To: 'to',
     Both: 'both'
 }
+
+export const TransformationType = {
+    Polynomial: 'polynomial',
+    Polynomial2: 'polynomial2',
+    Polynomial3: 'polynomial3',
+    ThinPlateSpline: 'thinPlateSpline',
+    Projective: 'projective'
+}
+
+export const TransformationTypes = [
+    TransformationType.Polynomial,
+    TransformationType.Polynomial2,
+    TransformationType.Polynomial3,
+    TransformationType.ThinPlateSpline,
+    TransformationType.Projective
+]
+
+export const TransformationTypeLabels = {
+    'polynomial' : '1st order Polynomial',
+    'polynomial2' : '2nd order Polynomial',
+    'polynomial3' : '3rd order Polynomial',
+    'thinPlateSpline' : 'Thin plate spline',
+    'projective' : 'Projective'
+}
+
+export const TransformationTypesMinGCP = {
+    'polynomial' : 3,
+    'polynomial2' : 6,
+    'polynomial3' : 10,
+    'thinPlateSpline' : 3,
+    'projective' : 4
+}
