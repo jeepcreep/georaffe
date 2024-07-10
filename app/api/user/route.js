@@ -2,20 +2,20 @@ import connectToDatabase  from '@utils/database';
 
 import User from "@models/user";
 
-export const GET = async (req, { params }) => {
-    try {
-        await connectToDatabase();
+// export const GET = async (req, { params }) => {
+//     try {
+//         await connectToDatabase();
 
-        const user = await User.findById(params.id);
+//         const user = await User.findById(params.id);
 
-        if (!user) return new Response("User not found!", { status : 404 });
+//         if (!user) return new Response("User not found!", { status : 404 });
 
-        return new Response(JSON.stringify(user, { status : 200 }));
-    } catch (error) {
-        console.log(error);
-        return new Response("Failed to retrieve user.", { status: 500 });
-    }
-}
+//         return new Response(JSON.stringify(user, { status : 200 }));
+//     } catch (error) {
+//         console.log(error);
+//         return new Response("Failed to retrieve user.", { status: 500 });
+//     }
+// }
 
 // export const PATCH = async (req, { params }) => {
 //     const { status, fileId, width, height } = await req.json();

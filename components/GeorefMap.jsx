@@ -5,8 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useLeafletContext } from '@react-leaflet/core'
 import { useMap, useMapEvents } from 'react-leaflet/hooks'
 import L from 'leaflet'
-L.RasterCoords = require('leaflet-rastercoords');
-import { ImageOverlay } from 'react-leaflet/ImageOverlay'
+import RasterCoords from 'leaflet-rastercoords';
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -337,7 +336,7 @@ export default function GeorefMap({selectedMap}) {
       height //5409   // original height of image
     ]
 
-    const rc = new L.RasterCoords(map, img);
+    const rc = new RasterCoords(map, img);
     rasterCoordsRef.current = rc; 
 
     map.setMaxZoom(rc.zoomLevel())
