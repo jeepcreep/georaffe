@@ -6,9 +6,11 @@ import { MapStatus } from '@utils/enums';
 
 export const GET = async (req) => {
     try {
-        const url = new URL(req.url);
-        const searchParams = new URLSearchParams(url.searchParams);
-        console.log('searchParams', searchParams);
+        // const url = new URL(req.url);
+        // const searchParams = new URLSearchParams(url.searchParams);
+        // console.log('searchParams', searchParams);
+
+        const searchParams = req.nextUrl.searchParams;
 
         await connectToDatabase();
 
