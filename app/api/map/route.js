@@ -5,6 +5,7 @@ import Map from "@models/map";
 import { MapStatus } from '@utils/enums';
 
 export const GET = async (req) => {
+    'use server'
     try {
         // const url = new URL(req.url);
         // const searchParams = new URLSearchParams(url.searchParams);
