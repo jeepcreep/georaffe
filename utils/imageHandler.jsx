@@ -77,7 +77,7 @@ export const saveImageLocally = async (file, mapId)  => {
     const uploadFilePath = path.join(process.cwd(), "public/uploads/" + tempFilename);
     console.log('uploadFilePath : ' + uploadFilePath);
 
-    await fetch(process.env.HOST_BASE_URL_DEV + '/api/map/' + mapId, {
+    await fetch(process.env.HOST_BASE_URL + '/api/map/' + mapId, {
         method: 'PATCH',
         body: JSON.stringify({
             fileId: tempFilename,
@@ -101,7 +101,7 @@ export const saveImageLocally = async (file, mapId)  => {
 // python3 gdal2tiles.py -p raster -l -z 0-5 <filename>
 export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
 
-    await fetch(process.env.HOST_BASE_URL_DEV + '/api/map/' + mapId, {
+    await fetch(process.env.HOST_BASE_URL + '/api/map/' + mapId, {
         method: 'PATCH',
         body: JSON.stringify({
             status: MapStatus.Tiling
@@ -134,7 +134,7 @@ export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
     pythonProcess.on('close', async (code) => {
         console.log(`child process exited with code ${code}`);
         if (code == 0) {
-            await fetch(process.env.HOST_BASE_URL_DEV + '/api/map/' + mapId, {
+            await fetch(process.env.HOST_BASE_URL + '/api/map/' + mapId, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     status: MapStatus.TilingDone
@@ -142,7 +142,7 @@ export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
               })
         }
         else {
-            await fetch(process.env.HOST_BASE_URL_DEV + '/api/map/' + mapId, {
+            await fetch(process.env.HOST_BASE_URL + '/api/map/' + mapId, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     status: MapStatus.ErrorWhileTiling

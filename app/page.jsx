@@ -54,10 +54,6 @@ const Home = () => {
         })
       }
       
-      // const selectedMapResponse = await fetch(process.env.HOST_BASE_URL_DEV + '/api/map' + urlParams);
-      // const selectedMapData = await selectedMapResponse.json();
-
-      // console.log('selectedMapData', selectedMapData);
     }
 
     fetchMaps();
