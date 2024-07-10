@@ -1,15 +1,14 @@
 "use client"
 
+import window from 'global'
+
 import React, { Suspense } from 'react'
-import dynamic from "next/dynamic";
 import GeorefMap from '@components/GeorefMap';
 import OverlayMap from '@components/OverlayMap';
 import MyMapsDrawer from '@components/MyMapsDrawer';
 import CreateMapModal from '@components/CreateMapModal';
 import { useState, useEffect } from 'react';
 import { Button } from "flowbite-react";
-
-import fetchDefaultSelectedMap from '@utils/initialize';
 
 import Loading from './loading';
 

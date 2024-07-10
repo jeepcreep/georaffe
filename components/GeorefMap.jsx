@@ -1,5 +1,7 @@
 "use client";
 
+import window from 'global'
+
 import { useState, Suspense } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useLeafletContext } from '@react-leaflet/core'
