@@ -95,7 +95,7 @@ const uploadTiledMapsToS3 = async () => {
       uploading = true;
       console.log(`${key}: ${value}`);
 
-      await fetch(process.env.HOST_BASE_URL_DEV + '/api/map/' + key, {
+      await fetch(process.env.HOST_BASE_URL + '/api/map/' + key, {
         method: 'PATCH',
         body: JSON.stringify({
             status: MapStatus.Uploading
@@ -114,7 +114,7 @@ const uploadTiledMapsToS3 = async () => {
         await uploadToS3Bucket(base64data, s3Filename, process.env.AWS_S3_TILES_BUCKET);
       }
 
-      await fetch(process.env.HOST_BASE_URL_DEV + '/api/map/' + key, {
+      await fetch(process.env.HOST_BASE_URL + '/api/map/' + key, {
         method: 'PATCH',
         body: JSON.stringify({
             status: MapStatus.Ready
