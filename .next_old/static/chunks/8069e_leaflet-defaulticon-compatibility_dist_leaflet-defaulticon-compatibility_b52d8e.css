@@ -1,0 +1,26 @@
+/* [project]/node_modules/leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css [app-client] (css) */
+.leaflet-default-icon-icon {
+  background-image: url("../media/marker-icon.ded0b320.png"), url("../media/marker-icon-2x.02f52ce9.png");
+  cursor: url("../media/marker-icon.ded0b320.png"), url("../media/marker-icon-2x.02f52ce9.png"), auto;
+  width: 25px;
+  height: 41px;
+  margin: -41px -12px;
+}
+
+.leaflet-default-icon-shadow {
+  background-image: url("../media/marker-shadow.071016c8.png");
+  cursor: url("../media/marker-shadow.071016c8.png"), auto;
+  width: 41px;
+  height: 41px;
+  margin: -41px -12px;
+}
+
+.leaflet-default-icon-popup {
+  margin: -34px 1px;
+}
+
+.leaflet-default-icon-tooltip {
+  margin: -28px 16px;
+}
+
+/*# sourceMappingURL=8069e_leaflet-defaulticon-compatibility_dist_leaflet-defaulticon-compatibility_b52d8e.css.map*/
