@@ -89,7 +89,7 @@ const Home = () => {
             <Suspense fallback={<Loading />}>
               <MyMapsDrawer maps={maps} setMaps={setMaps} selectedMap={selectedMap} setSelectedMap={setSelectedMap}/>
               {!displayOverlayMap ? (
-                <GeorefMap selectedMap={selectedMap}/>
+                <GeorefMap selectedMap={selectedMap} s3TilesBucket={process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET} s3Region={process.env.NEXT_PUBLIC_AWS_S3_REGION}/>
               ) : (
                 <OverlayMap selectedMap={selectedMap}/>
               )}
