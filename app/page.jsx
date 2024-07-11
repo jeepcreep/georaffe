@@ -2,9 +2,14 @@
 
 import window from 'global'
 
+import dynamic from 'next/dynamic'
+
+const GeorefMap = dynamic(() => import('@components/GeorefMap'), { ssr: false })
+const OverlayMap = dynamic(() => import('@components/OverlayMap'), { ssr: false })
+
 import React, { Suspense } from 'react'
-import GeorefMap from '@components/GeorefMap';
-import OverlayMap from '@components/OverlayMap';
+// import GeorefMap from '@components/GeorefMap';
+// import OverlayMap from '@components/OverlayMap';
 import MyMapsDrawer from '@components/MyMapsDrawer';
 import CreateMapModal from '@components/CreateMapModal';
 import { useState, useEffect } from 'react';
@@ -13,7 +18,6 @@ import { Button } from "flowbite-react";
 import Loading from './loading';
 
 const Home = () => {
-  // const [markers, setMarkers] = useState([]);
   const [maps, setMaps] = useState([]);
   const [selectedMap, setSelectedMap] = useState(null);
 

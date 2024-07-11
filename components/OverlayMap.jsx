@@ -5,8 +5,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useLeafletContext } from '@react-leaflet/core'
 import { useMap, useMapEvents } from 'react-leaflet/hooks'
 import L from 'leaflet'
+
 //L.RasterCoords = require('leaflet-rastercoords');
-import { ImageOverlay } from 'react-leaflet/ImageOverlay'
+
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -114,7 +115,7 @@ export default function OverlayMap({selectedMap}) {
             const fileExt = filename.substring(filename.lastIndexOf('.') + 1);
             const fullUrl = `https://${process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_S3_REGION}.amazonaws.com/${filenameWithoutExt}/${filenameWithoutExt}_reduced.${fileExt}`;        
 
-            const arrugatorLayer = L.imageOverlay.arrugator(
+            const arrugatorLayer = new L.ImageOverlay.Arrugator(
                 // First argument to the factory/constructor is the URL of the image. Only png/jpg.
                 fullUrl,
                 {

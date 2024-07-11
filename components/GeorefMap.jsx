@@ -1,13 +1,42 @@
 "use client";
 
-import window from 'global'
+import dynamic from 'next/dynamic'
+
+import L from 'leaflet';
+
+// // Dynamic import of react-leaflet components
+// const MapContainer = dynamic(
+//   () => import("react-leaflet").then((module) => module.MapContainer),
+//   {
+//     ssr: false, // Disable server-side rendering for this component
+//   }
+// );
+// const TileLayer = dynamic(
+//   () => import("react-leaflet").then((module) => module.TileLayer),
+//   {
+//     ssr: false,
+//   }
+// );
+// const Marker = dynamic(
+//   () => import("react-leaflet").then((module) => module.Marker),
+//   {
+//     ssr: false,
+//   }
+// );
+// const Popup = dynamic(
+//   () => import("react-leaflet").then((module) => module.Popup),
+//   {
+//     ssr: false,
+//   }
+// );
 
 import { useState, Suspense } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useLeafletContext } from '@react-leaflet/core'
 import { useMap, useMapEvents } from 'react-leaflet/hooks'
-import L from 'leaflet'
-import RasterCoords from 'leaflet-rastercoords';
+
+// import L from 'leaflet'
+L.RasterCoords = require('leaflet-rastercoords');
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -142,12 +171,18 @@ export default function GeorefMap({selectedMap}) {
   
 
   const DraggableMarker = ({controlPoint, isRasterImage, isNew = false, markerId}) => {
+    const [isBrowser, setIsBrowser] = useState(false);
+    
     console.log('draggable marker for control point : ' + JSON.stringify(controlPoint));
     //const [draggable, setDraggable] = useState(isNew ? true : false)
     //const [position, setPosition] = useState(isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint)
     let markerRef = useRef(null)
     let draggable = useRef(isNew ? true : false);
     let position = useRef(isRasterImage ? controlPoint.fromPoint : controlPoint.toPoint);
+
+    useEffect(() => {
+      setIsBrowser(true);
+    }, []);
 
     const isFrom = markerId.includes('from') ? true : false;
     const twinMarkerId = 'cp-' + (isFrom ? 'to-' : 'from-') + controlPoint._id;
@@ -232,6 +267,9 @@ export default function GeorefMap({selectedMap}) {
       twinMarkerRef.current.setIcon(newControlPointIcon);
     }, [])
 
+    if (!isBrowser) {
+      return null;
+    }
 
     return (
       <Marker
@@ -338,7 +376,7 @@ export default function GeorefMap({selectedMap}) {
       height //5409   // original height of image
     ]
 
-    const rc = new RasterCoords(map, img);
+    const rc = new L.RasterCoords(map, img);
     rasterCoordsRef.current = rc; 
 
     map.setMaxZoom(rc.zoomLevel())
