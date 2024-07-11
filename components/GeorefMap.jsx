@@ -4,31 +4,6 @@ import dynamic from 'next/dynamic'
 
 import L from 'leaflet';
 
-// // Dynamic import of react-leaflet components
-// const MapContainer = dynamic(
-//   () => import("react-leaflet").then((module) => module.MapContainer),
-//   {
-//     ssr: false, // Disable server-side rendering for this component
-//   }
-// );
-// const TileLayer = dynamic(
-//   () => import("react-leaflet").then((module) => module.TileLayer),
-//   {
-//     ssr: false,
-//   }
-// );
-// const Marker = dynamic(
-//   () => import("react-leaflet").then((module) => module.Marker),
-//   {
-//     ssr: false,
-//   }
-// );
-// const Popup = dynamic(
-//   () => import("react-leaflet").then((module) => module.Popup),
-//   {
-//     ssr: false,
-//   }
-// );
 
 import { useState, Suspense } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -46,7 +21,7 @@ import { Button, Label } from "flowbite-react";
 import Loading from './loading';
 import { CurrentControlPointStatus } from "@utils/enums";
 
-export default function GeorefMap({selectedMap}) {
+export default function GeorefMap({selectedMap, s3TilesBucket, s3Region}) {
   let rasterCoordsRef = useRef(null);
   if (rasterCoordsRef !== null) {
     rasterCoordsRef.current = null;
@@ -356,7 +331,7 @@ export default function GeorefMap({selectedMap}) {
 
   const getFullImageUrl = (filename) => {
     const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
-    let fullUrl = `https://${process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_S3_REGION}.amazonaws.com/${filenameWithoutExt}/tiles`;
+    let fullUrl = `https://${s3TilesBucket}.s3.${s3Region}.amazonaws.com/${filenameWithoutExt}/tiles`;
     return fullUrl;
  }
 

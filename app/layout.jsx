@@ -25,7 +25,6 @@ const RootLayout = ( {children} ) => {
     <html lang="en">
         <head>
             <ThemeModeScript />
-            <Script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js" />
         </head>
         <body>
             <Toaster />
