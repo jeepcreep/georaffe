@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["[project]/node_modules/leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"],"sourcesContent":["/* Default icon options */\n.leaflet-default-icon-icon {\n\tbackground-image: url(images/marker-icon.png), url(images/marker-icon-2x.png); /* normal[, Retina] */\n\tcursor: url(images/marker-icon.png), url(images/marker-icon-2x.png), auto; /* normal[, Retina], auto for compliance with cursor syntax */\n\twidth: 25px;\n\theight: 41px;\n\tmargin: -41px -12px; /* margin top and left to reversely position iconAnchor */\n\t}\n.leaflet-default-icon-shadow {\n\tbackground-image: url(images/marker-shadow.png); /* normal[, Retina] */\n\tcursor: url(images/marker-shadow.png), auto; /* normal[, Retina], auto */\n\twidth: 41px;\n\theight: 41px;\n\tmargin: -41px -12px; /* margin top and left to reversely position shadowAnchor */\n\t}\n.leaflet-default-icon-popup {\n\tmargin: -34px 1px; /* margin top and left to position popupAnchor */\n\t}\n.leaflet-default-icon-tooltip {\n\tmargin: -28px 16px; /* margin top and left to position tooltipAnchor, even if direction 'bottom' or 'right' */\n\t}\n"],"names":[],"mappings":"AACA;;;;;;;;AAOA;;;;;;;;AAOA;;;;AAGA"}},
-    {"offset": {"line": 24, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
-}
