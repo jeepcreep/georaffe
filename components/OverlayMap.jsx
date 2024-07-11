@@ -6,6 +6,8 @@ import { useLeafletContext } from '@react-leaflet/core'
 import { useMap, useMapEvents } from 'react-leaflet/hooks'
 import L from 'leaflet'
 
+import * as Arrugator from '@public/scripts/leaflet.imageoverlay.arrugator'
+
 //L.RasterCoords = require('leaflet-rastercoords');
 
 import "leaflet/dist/leaflet.css";
