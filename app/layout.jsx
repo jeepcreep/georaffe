@@ -1,5 +1,7 @@
 import "@styles/globals.css";
 
+import dynamic from 'next/dynamic'
+
 import Nav from "@components/Nav";
 import Provider from "@components/Provider";
 import MyMapsDrawer from '@components/MyMapsDrawer';
@@ -25,7 +27,7 @@ const RootLayout = ( {children} ) => {
             <ThemeModeScript />
             {/* <Script src="https://unpkg.com/leaflet.imageoverlay.arrugator@1.4.0/dist/leaflet.imageoverlay.arrugator.js" /> */}
             <Script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js" />
-            <Script src="/scripts/leaflet.imageoverlay.arrugator.js" />
+            {/* <Script src="/scripts/leaflet.imageoverlay.arrugator.js" /> */}
         </head>
         <body>
             <Toaster />
