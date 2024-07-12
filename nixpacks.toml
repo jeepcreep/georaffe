@@ -1,4 +1,4 @@
 providers = ["...", "python"]
 
 [phases.setup]
-aptPkgs = ["...", "libgdal-dev"]
+aptPkgs = ["...", "libgdal-dev=3.6.2"]
