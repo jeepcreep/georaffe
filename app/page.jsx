@@ -87,7 +87,9 @@ const Home = () => {
               ('ground control points') both on a normal
               OpenStreetMap and on a raster image, often a 
               historical depiction of the same place.
-              <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+          </p>
+          <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+          <p className='desc text-center'>
               It's fun, easy and free - just sign up with 
               a google account and you're good to go.  
           </p>
