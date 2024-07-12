@@ -3,5 +3,6 @@ providers = ["...", "python"]
 [phases.setup]
 aptPkgs = ["...", "libgdal-dev"]
 
-[phases.install]
-cmds = ["...", "pip install --upgrade pip", "pip install wheel==0.41.0"]
+[phases.gdal]
+dependsOn = ['python:install']
+cmds = ["pip install --upgrade pip", "pip install wheel==0.41.0", "pip install gdal==3.4.1"]
