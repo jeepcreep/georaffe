@@ -16,8 +16,8 @@ import { Toaster } from 'react-hot-toast';
 import Loading from './loading';
 
 export const metadata = {
-    title: "GeoRef",
-    description: "Compare maps through the magic of georeferencing"
+    title: "GeoRaffe",
+    description: "GeoRaffe is where you can compare maps through the beauty of georeferencing and georectifying"
 }
 
 const RootLayout = ( {children} ) => {
@@ -25,6 +25,9 @@ const RootLayout = ( {children} ) => {
     <html lang="en">
         <head>
             <ThemeModeScript />
+            <link rel="manifest" href="/site.webmanifest" />
+            <link rel="icon" href="/favicon.ico" sizes="any" />
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png" type="image/png" sizes="180x180" />
         </head>
         <body>
             <Toaster />

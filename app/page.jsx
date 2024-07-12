@@ -80,12 +80,12 @@ const Home = () => {
         <div className='w-full flex-center flex-col'>
 
           <p className='desc text-center'>
-              GeoRaffe is your stop for comparing
+              GeoRaffe (a pun on 'georef') is your stop for comparing
               geographical maps with one another by
-              matching known geographical points
+              matching known locations
               ('ground control points') both on a normal
               OpenStreetMap and on a raster image, often a 
-              historical depiction of the same geo location.
+              historical depiction of the same place.
               <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
               It's fun, easy and free - just sign up with 
               a google account and you're good to go.  
