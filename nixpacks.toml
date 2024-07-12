@@ -2,14 +2,13 @@ buildImage = 'ghcr.io/railwayapp/nixpacks:latest'
 
 providers = ["...", "python"]
 
-# [phases.setup]
-# nixPkgs = ["...", "gnupg"]
+[phases.setup]
+cmds = ['...', 'wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.5.1-0-Linux-x86_64.sh',
+        'bash Miniconda3-py39_23.5.1-0-Linux-x86_64.sh -b']
 
 [phases.conda1]
 dependsOn = ['python:install']
-cmds = ['wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.5.1-0-Linux-x86_64.sh',
-        'bash Miniconda3-py39_23.5.1-0-Linux-x86_64.sh -b',
-        'rm Miniconda3-py39_23.5.1-0-Linux-x86_64.sh']
+cmds = ['rm Miniconda3-py39_23.5.1-0-Linux-x86_64.sh']
 
 [phases.conda2]
 dependsOn = ['conda1']
