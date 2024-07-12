@@ -76,6 +76,8 @@ export const saveImageLocally = async (file, mapId)  => {
     const tempFilename = `${filename}-${Date.now()}.${extension}`
     const uploadFilePath = path.join(process.cwd(), "public/uploads/" + tempFilename);
     console.log('uploadFilePath : ' + uploadFilePath);
+    console.log('tempFilename : ' + tempFilename);
+    console.log('mapId : ' + mapId);
 
     await fetch(process.env.HOST_BASE_URL + '/api/map/' + mapId, {
         method: 'PATCH',
