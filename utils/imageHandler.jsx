@@ -69,12 +69,26 @@ export const saveImageLocally = async (file, mapId)  => {
     const imageDimensions = imageDimensionsFromData(data);
     console.log('imageDimensions', imageDimensions);
 
+    const uploadFilePathRoot = path.join(process.cwd(), "public/uploads/");
+    // Check if the directory exists
+    const dirExists = await fs.stat(uploadFilePathRoot);
+
+    if (!dirExists) {
+        const dirCreated = await fs.mkdir(uploadFilePathRoot);
+        if (dirCreated) {
+            console.log(`Directory '${uploadFilePathRoot}' created.`);
+        }
+    }
+    else {
+        console.log(`Directory '${uploadFilePathRoot}' already exists.`);
+    }
+
     //creating temp local file path
     let filename =  file.name.replaceAll(" ", "_");
     const extension = filename.substring(filename.lastIndexOf('.') + 1);
     filename = filename.substring(0, filename.lastIndexOf('.'));
     const tempFilename = `${filename}-${Date.now()}.${extension}`
-    const uploadFilePath = path.join(process.cwd(), "public/uploads/" + tempFilename);
+    const uploadFilePath = uploadFilePathRoot + tempFilename;
     console.log('uploadFilePath : ' + uploadFilePath);
     console.log('tempFilename : ' + tempFilename);
     console.log('URL : ' + process.env.HOST_BASE_URL_LOCAL + '/api/map/' + mapId);
