@@ -1,5 +1,4 @@
 providers = ["...", "python"]
 
 [phases.setup]
-cmds = ['...', 'apt update']
-aptPkgs = ["...", "libgdal-dev"]
+nixPkgs = ["...", "libgdal-dev"]
