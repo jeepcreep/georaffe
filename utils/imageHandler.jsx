@@ -79,13 +79,17 @@ export const saveImageLocally = async (file, mapId)  => {
     console.log('tempFilename : ' + tempFilename);
     console.log('mapId : ' + mapId);
 
+    const input = JSON.stringify({
+        fileId: tempFilename,
+        width: imageDimensions.width,
+        height: imageDimensions.height
+    });
+
+    console.log('input : ', JSON.parse(input));
+
     await fetch(process.env.HOST_BASE_URL + '/api/map/' + mapId, {
         method: 'PATCH',
-        body: JSON.stringify({
-            fileId: tempFilename,
-            width: imageDimensions.width,
-            height: imageDimensions.height
-        })
+        body: input
       })
 
     try {
