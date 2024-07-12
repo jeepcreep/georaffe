@@ -32,7 +32,10 @@ export const GET = async (req) => {
             return new Response(JSON.stringify(selectedMap, { status : 200 }));
         }
         else {
-            const maps = await Map.find({}).populate('user');
+            let maps = await Map.find({}).populate('user');
+            if (maps == null || maps == undefined) {
+                maps = [];
+            }
             return new Response(JSON.stringify(maps, { status : 200 }));
         }
         

@@ -53,6 +53,7 @@ const Home = () => {
           .then((res) => res.json())
           .then((selectedMap) => {
             setSelectedMap(selectedMap[0])
+            //setSelectedMap(null)
             setLoading(false)
         })
       }
@@ -108,12 +109,13 @@ const Home = () => {
         <div className='w-full flex-center flex-col'>
 
             <div className='w-full flex-center flex-row my-2.5'>
-              {selectedMap.controlPoints && selectedMap.controlPoints.length >= 3 ? (
+              {selectedMap != null && selectedMap != undefined && selectedMap.controlPoints && selectedMap.controlPoints.length >= 3 ? (
                 <Button onClick={() => toggleOverlayMap(true)}>{displayOverlayMap ? 'Georeference' : 'Overlay map'}</Button>
               ) : ( <></>)
               }
             </div>
             <div className='w-full flex-center flex-row'>
+            {selectedMap != null && selectedMap != undefined ? (
                 <Suspense fallback={<Loading />}>
                   <MyMapsDrawer maps={maps} setMaps={setMaps} selectedMap={selectedMap} setSelectedMap={setSelectedMap}/>
                   {!displayOverlayMap ? (
@@ -122,7 +124,17 @@ const Home = () => {
                     <OverlayMap selectedMap={selectedMap}/>
                   )}
                 </Suspense>
-                <CreateMapModal maps={maps} setMaps={setMaps}/>
+                ) : ( 
+                  <section className='w-full flex-center flex-col my-3'>
+                    <h2 className='subhead2_text'>No maps, no problem</h2>
+                    <p className='desc_medium text-center text-gray-600'>
+                       Start by uploading a new map
+                    </p>
+                  </section>
+                )
+              }
+              
+              <CreateMapModal maps={maps} setMaps={setMaps}/>
             </div>
         </div>
 
