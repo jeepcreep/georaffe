@@ -66,7 +66,7 @@ export const saveImageLocally = async (file, mapId)  => {
     const data = Buffer.from(await file.arrayBuffer())
 
     //const stream = Readable.from(data);
-    const imageDimensions = await imageDimensionsFromData(data);
+    const imageDimensions = imageDimensionsFromData(data);
     console.log('imageDimensions', imageDimensions);
 
     //creating temp local file path
