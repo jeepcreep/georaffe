@@ -2,7 +2,7 @@
 
 const fetchDefaultSelectedMap = async () => {
     let urlParams = '?selectedMap=newest'
-    const selectedMapResponse = await fetch(process.env.HOST_BASE_URL + '/api/map' + urlParams);
+    const selectedMapResponse = await fetch(process.env.HOST_BASE_URL_LOCAL + '/api/map' + urlParams);
     const selectedMapData = await selectedMapResponse.json();
 
     console.log('selectedMapData', selectedMapData);
