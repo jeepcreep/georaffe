@@ -1,7 +1,7 @@
 providers = ["...", "python"]
 
-# [phases.setup]
-# aptPkgs = ["...", "libgdal-dev=3.6.2"]
+[phases.setup]
+nixPkgs = ["...", "gnupg"]
 
 [phases.gdal]
 dependsOn = ['python:install']
