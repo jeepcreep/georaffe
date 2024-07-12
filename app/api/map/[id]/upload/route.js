@@ -18,9 +18,7 @@ export const POST = async (req, { params }) => {
         if (!file) {
             return new Response({ error: "No files received."}, { status: 400 });
         }
-
-        console.log('max zoom level : ' + req.nextUrl.searchParams['maxZoomLevel']);
-
+        
         const mapId = params.id;
         const map = await getMapById(mapId);
         // first save it locally
