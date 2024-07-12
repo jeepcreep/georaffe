@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import toast from 'react-hot-toast';
 
-export default function CreateMapModal ({maps, setMaps }) {
+export default function CreateMapModal ({ maps, setMaps }) {
   const [openModal, setOpenModal] = useState(false);
   const [title, setTitle] = useState('');
   const [file, setFile] = useState(null);
