@@ -13,13 +13,15 @@ cmds = ['rm Miniconda3-py39_23.5.1-0-Linux-x86_64.sh',
 
 [phases.conda2]
 dependsOn = ['conda1']
-cmds = ['source /root/miniconda3/bin/activate',
-        '/root/miniconda3/bin/conda init',
-        '/root/miniconda3/bin/conda list']
+cmds = ['export PATH=$PATH:/root/miniconda3/bin/:/root/miniconda3/condabin/',
+        'source /root/miniconda3/bin/activate',
+        'conda init']
 
 [phases.gdal]
 dependsOn = ['conda2']
-cmds = ['/root/miniconda3/bin/conda install gdal']
+cmds = ['conda create -n gdal python=3.9',
+        'conda activate gdal',
+        'conda install gdal']
 
 [phases.gdal_verify]
 dependsOn = ['gdal']
