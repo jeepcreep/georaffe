@@ -2,16 +2,15 @@ buildImage = 'ghcr.io/railwayapp/nixpacks:latest'
 
 providers = ["...", "python"]
 
-[phases.setup]
-nixPkgs = ["...", "gnupg"]
+# [phases.setup]
+# nixPkgs = ["...", "gnupg"]
 
 [phases.gdal]
 dependsOn = ['python:install']
-cmds = ['curl https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | gpg --dearmor > conda.gpg', 
-        'install -o root -g root -m 644 conda.gpg /usr/share/keyrings/conda-archive-keyring.gpg', 
-        'gpg --keyring /usr/share/keyrings/conda-archive-keyring.gpg --no-default-keyring --fingerprint 34161F5BF5EB1D4BFBBB8F0A8AEB4F8B29D82806',
-        'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/conda-archive-keyring.gpg] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main" > /etc/apt/sources.list.d/conda.list',
-        'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/conda-archive-keyring.gpg] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main" | sudo tee -a /etc/apt/sources.list.d/conda.list',
-        'apt-get install -y conda',
-        'source /opt/conda/etc/profile.d/conda.sh',
-        'conda -V']
+cmds = ['wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.5.1-0-Linux-x86_64.sh',
+        'bash Miniconda3-py39_23.5.1-0-Linux-x86_64.sh -b',
+        'source /home/pythonuser/miniconda3/bin/activate',
+        'conda init']
+
+[phases.start]
+cmds = ['conda list']
