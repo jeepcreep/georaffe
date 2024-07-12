@@ -58,7 +58,7 @@ const connectToDatabase = async () => {
       };
   
       cached.promise = mongoose.connect(process.env.MONGODB_URI, {
-                dbName: 'georef'
+                dbName: process.env.MONGODB_DBNAME
             }).then((mongoose) => {
         return mongoose;
       });
