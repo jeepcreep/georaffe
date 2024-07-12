@@ -26,6 +26,14 @@ const Nav = () => {
     <nav className='flex-between w-full mb-8 pt-3'>
 
         <Link href="/" className="flex gap-2 flex-center">
+            <Image 
+                src="/assets/icons/georaffe.png" 
+                width={152}
+                height={180}
+                className='rounded-full'
+                alt='logo'
+            />
+
             <div className='w-full flex-center flex-col'>
                 <div className='w-full flex-center flex-row'>
                     <h1 className='head_text text-center'>
@@ -34,7 +42,7 @@ const Nav = () => {
                 </div>
                 <div className='w-full flex-center flex-row'>
                     <h2 className='subhead_text text-center'>
-                    <span className='orange_gradient text-center'>Next-level georeferencing</span>
+                    <span className='orange_gradient text-center'>for the love of maps</span>
                     </h2>
                 </div>
             </div>
@@ -82,9 +90,9 @@ const Nav = () => {
             {session?.user ? (
                 <div className='flex'>
                     <Image 
-                        src="/assets/images/logo.svg" 
-                        width={37}
-                        height={37}
+                        src="/assets/icons/georaffe.png" 
+                        width={50}
+                        height={50}
                         className='rounded-full'
                         alt='profile'
                         onClick={() => setToggleDropdown((prev) => !prev)}
@@ -98,13 +106,6 @@ const Nav = () => {
                                 onClick={() => setToggleDropdown(false)}
                             >
                                 My Profile
-                            </Link>
-                            <Link
-                                href="/create-prompt"
-                                className='dropdown_link'
-                                onClick={() => setToggleDropdown(false)}
-                            >
-                                Create Prompt
                             </Link>
                             <button
                                 type="button"

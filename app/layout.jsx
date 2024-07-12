@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 
 import Nav from "@components/Nav";
 import Provider from "@components/Provider";
-import MyMapsDrawer from '@components/MyMapsDrawer';
+import MyFooter from '@components/MyFooter';
 
 import { Suspense } from 'react';
 
@@ -37,6 +37,7 @@ const RootLayout = ( {children} ) => {
                     </Suspense>
                 </main>
             </Provider>
+            <MyFooter />
         </body>
     </html>
   )
