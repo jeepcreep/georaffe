@@ -8,7 +8,8 @@ cmds = ['...', 'wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.5.1-
 
 [phases.conda1]
 dependsOn = ['python:install']
-cmds = ['rm Miniconda3-py39_23.5.1-0-Linux-x86_64.sh']
+cmds = ['rm Miniconda3-py39_23.5.1-0-Linux-x86_64.sh',
+        'ls -alsht /root/miniconda3/bin/']
 
 [phases.conda2]
 dependsOn = ['conda1']
