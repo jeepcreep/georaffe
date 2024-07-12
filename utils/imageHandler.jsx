@@ -71,16 +71,13 @@ export const saveImageLocally = async (file, mapId)  => {
 
     const uploadFilePathRoot = path.join(process.cwd(), "public/uploads/");
     // Check if the directory exists
-    const dirExists = await fs.stat(uploadFilePathRoot);
 
-    if (!dirExists) {
-        const dirCreated = await fs.mkdir(uploadFilePathRoot);
-        if (dirCreated) {
-            console.log(`Directory '${uploadFilePathRoot}' created.`);
-        }
-    }
-    else {
-        console.log(`Directory '${uploadFilePathRoot}' already exists.`);
+    try {
+        await fs.stat(uploadFilePathRoot);
+    } catch (error) {
+        console.log(error);
+        await fs.mkdir(uploadFilePathRoot);
+        console.log(`Directory '${uploadFilePathRoot}' created.`);
     }
 
     //creating temp local file path
