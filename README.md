@@ -1,8 +1,10 @@
-## Warning: 
-this repo is heavily WIP and there a still quite a few things missing - it's merely my private-yet-public pet project
+> [!WARNING] 
+> this repo is heavily WIP and there a still quite a few things missing - it's merely my private-yet-public pet project
 
 
-![GeoRaffe is where you can compare maps through the beauty of georeferencing and georectifying](/public/assets/icons/georaffe.png) ## Welcome to GeoRaffe, 
+![GeoRaffe is where you can compare maps through the beauty of georeferencing and georectifying](/public/assets/icons/georaffe.png) 
+
+## Welcome to GeoRaffe, 
 
 a full-fledged platform for georeferencing and georectifying raster images. Uploaded images will automatically be tiled (using a modified version of gdal2tiles), uploaded to an S3 bucket and served as XYZ tiles.
 The workflow is as such:
