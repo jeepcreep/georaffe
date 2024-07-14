@@ -9,8 +9,8 @@ providers = ["...", "python"]
 aptPkgs = ["...", "python3-pip", "libgdal-dev"]#, "gdal-bin", "python3-gdal", "libgdal-dev"]
 
 [phases.install]
-dependsOn = ['install']
-cmds = ['...', 'pip3 install GDAL==3.7.2']
+cmds = ['...', 'pip3 install GDAL']
+# cmds = ['...', 'conda install gdal']
 
 # [phases.conda1]
 # dependsOn = ['python:install']
