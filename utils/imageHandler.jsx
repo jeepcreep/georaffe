@@ -131,18 +131,8 @@ export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
 
     const tilesDir = filename.substring(0, filename.lastIndexOf('.')) + '/tiles';
 
-    // const pythonProcess = spawn('python3', [
-    //     'utils/gdal2tiles.py',
-    //     '-p',
-    //     'raster',
-    //     '-l',
-    //     '-z',
-    //     '0-' + maxZoomLevel,
-    //     filename,
-    //     tilesDir
-    // ]);
-
-    const pythonProcess = spawn('gdal2tiles.py', [
+    const pythonProcess = spawn('python3', [
+        'utils/gdal2tiles.py',
         '-p',
         'raster',
         '-l',
@@ -151,6 +141,16 @@ export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
         filename,
         tilesDir
     ]);
+
+    // const pythonProcess = spawn('gdal2tiles.py', [
+    //     '-p',
+    //     'raster',
+    //     '-l',
+    //     '-z',
+    //     '0-' + maxZoomLevel,
+    //     filename,
+    //     tilesDir
+    // ]);
 
     pythonProcess.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
