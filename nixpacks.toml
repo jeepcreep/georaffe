@@ -9,7 +9,7 @@ providers = ["...", "python"]
 aptPkgs = ["...", "python3-pip", "gdal-bin", "python3-gdal"]
 
 [phases.install]
-cmds = ['...', 'pip install gdal', 'pip install GDAL']
+cmds = ['...', 'pip3 install gdal', 'pip3 install GDAL']
 # cmds = ['...', 'conda install gdal']
 
 # [phases.conda1]
