@@ -1,13 +1,14 @@
 FROM cordmaur/geospatial_minimal AS base
 
-# install git
-RUN apt-get update && apt-get -y install git
 
 # install nodejs
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 ENV NVM_DIR="$HOME/.nvm"
 RUN [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 RUN [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# install git
+RUN apt-get update && apt-get -y install git
 
 RUN git clone -b "main" https://github.com/jeepcreep/georaffe /app
 
