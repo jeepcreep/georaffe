@@ -1,8 +1,7 @@
 FROM cordmaur/geospatial_minimal AS base
 
 # install git
-#RUN apt update
-RUN apt install -y git
+RUN apt-get update && apt-get -y install git
 
 # install nodejs
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
