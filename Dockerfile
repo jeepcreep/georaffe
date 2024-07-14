@@ -1,7 +1,7 @@
 FROM cordmaur/geospatial_minimal AS base
 
 # install git
-RUN apt update
+#RUN apt update
 RUN apt install -y git
 
 # install nodejs
