@@ -6,9 +6,10 @@ providers = ["...", "python"]
 # cmds = ['...', 'wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.5.1-0-Linux-x86_64.sh',
 #         'bash Miniconda3-py39_23.5.1-0-Linux-x86_64.sh -b']
 #nixPkgs = ["...", "gdalMinimal"]
-aptPkgs = ["...", "gdal-bin", "python3-gdal"]
+aptPkgs = ["...", "python3-pip", "gdal-bin", "python3-gdal"]
 
 [phases.install]
+cmds = ['...', 'pip install gdal', 'pip install GDAL']
 # cmds = ['...', 'conda install gdal']
 
 # [phases.conda1]
