@@ -1,5 +1,6 @@
 FROM cordmaur/geospatial_minimal AS base
 
+CMD ["/bin/bash"]
 
 # install nodejs
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
@@ -62,4 +63,4 @@ ENV PORT 3000
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+#CMD HOSTNAME="0.0.0.0" node server.js
