@@ -4,10 +4,10 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN apt-get update && apt-get -y install git python3-pip --fix-missing
 
-ARG mongodb_uri=setme
-ARG mongodb_dbname=setme
-ENV MONGODB_URI $mongodb_uri
-ENV MONGODB_DBNAME $mongodb_dbname
+# ARG mongodb_uri=setme
+# ARG mongodb_dbname=setme
+# ENV MONGODB_URI $mongodb_uri
+# ENV MONGODB_DBNAME $mongodb_dbname
 
 
 RUN echo $MONGODB_URI
