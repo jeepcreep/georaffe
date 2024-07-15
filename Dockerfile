@@ -33,6 +33,8 @@ RUN source $NVM_DIR/nvm.sh \
     && nvm alias default $NODE_VERSION \
     && nvm use default
 
+RUN echo $SOURCE_COMMIT
+
 RUN git clone -b "main" https://github.com/jeepcreep/georaffe /app
 
 WORKDIR /app
