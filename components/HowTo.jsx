@@ -35,6 +35,9 @@ const HowTo = () => {
         <section className='w-full flex-center flex-col my-3'>
           <h2 className='subhead2_text'>Hints:</h2>
           <p className='desc_medium text-center text-gray-600'>
+            Please note that in order to display large image efficiently, they will be tiled and uploaded to a CDN, which may take a little while (usually 1-2 minutes)
+          </p>
+          <p className='desc_medium text-center text-gray-600'>
             You can check how well the image is aligned by using the opacity slider!
           </p>
           <p className='desc_medium text-center text-gray-600'>

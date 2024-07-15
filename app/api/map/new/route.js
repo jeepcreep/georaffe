@@ -14,7 +14,7 @@ export const POST = async (req) => {
 
     try {
         const newMap = new Map({
-            creator: userId,  //TODO: REFACTOR!!!!
+            user: userId, 
             title,
             maxZoomLevel
         })
