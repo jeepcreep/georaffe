@@ -14,6 +14,8 @@ import CreateMapModal from '@components/CreateMapModal';
 import { useState, useEffect } from 'react';
 import { Button } from "flowbite-react";
 
+import { MapStatus } from "@utils/enums";
+
 import { useSession } from 'next-auth/react';
 
 import Loading from './loading';
@@ -29,9 +31,6 @@ const Home = () => {
 
   useEffect( () => {
       const fetchMaps = async () => {
-      
-      const response = await fetch('/api/map');
-      const data = await response.json();
 
       if (!schedulerStarted) {
         try {
@@ -44,6 +43,13 @@ const Home = () => {
           console.log(error);
         }
       }
+
+      const response = await fetch('/api/map');
+      if (response.status == 401) {
+        return;
+      }
+
+      const data = await response.json();
 
       setMaps(data);
 
@@ -120,11 +126,27 @@ const Home = () => {
             {selectedMap != null && selectedMap != undefined ? (
                 <Suspense fallback={<Loading />}>
                   <MyMapsDrawer maps={maps} setMaps={setMaps} selectedMap={selectedMap} setSelectedMap={setSelectedMap}/>
-                  {!displayOverlayMap ? (
+
+                  {selectedMap.status == MapStatus.Ready ? (
+                    !displayOverlayMap ? (
                     <GeorefMap selectedMap={selectedMap} s3TilesBucket={process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET} s3Region={process.env.NEXT_PUBLIC_AWS_S3_REGION}/>
                   ) : (
                     <OverlayMap selectedMap={selectedMap}/>
+                  )
+                  ) : (
+                    <></>
                   )}
+
+                  {selectedMap.status != MapStatus.Ready ? (
+                     <div className='w-full flex-center flex-row'>
+                        <h2 className='subhead2_text text-center'>
+                          <span className='orange_gradient text-center'>Your map is currently being processed, sit tight!</span>
+                        </h2>
+                     </div>
+                  ) : (
+                    <></>
+                  )}
+          
                 </Suspense>
                 ) : ( 
                   <section className='w-full flex-center flex-col my-3'>
@@ -136,7 +158,7 @@ const Home = () => {
                 )
               }
               
-              <CreateMapModal maps={maps} setMaps={setMaps}/>
+              <CreateMapModal maps={maps} setMaps={setMaps} userId={session?.user.id} setSelectedMap={setSelectedMap}/>
             </div>
         </div>
 

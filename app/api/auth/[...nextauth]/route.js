@@ -9,7 +9,7 @@ import connectToDatabase  from '@utils/database';
 //     clientSecret: process.env.GOOGLE_CLIENT_SECRET
 // })
 
-const handler = NextAuth({
+export const authOptions = {
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_ID,
@@ -36,11 +36,14 @@ const handler = NextAuth({
                 const userExists = await User.findOne({
                     email: profile.email
                 });
+
+                let profileName = profile.name ? profile.name.replace(" ", "").toLowerCase() : profile.email;
+
                 // if not, create a new user
                 if (!userExists) {
                     await User.create({
                         email: profile.email,
-                        username: profile.name.replace(" ", "").toLowerCase(),
+                        username: profileName,
                         image: profile.picture
                     })
                 }
@@ -53,6 +56,8 @@ const handler = NextAuth({
         }
     }
     
-})
+}
+
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST };

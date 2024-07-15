@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import toast from 'react-hot-toast';
 
-export default function CreateMapModal ({ maps, setMaps }) {
+export default function CreateMapModal ({ maps, setMaps, userId, setSelectedMap }) {
   const [openModal, setOpenModal] = useState(false);
   const [title, setTitle] = useState('');
   const [file, setFile] = useState(null);
@@ -36,8 +36,8 @@ export default function CreateMapModal ({ maps, setMaps }) {
       const createNewMapResponse = await fetch('/api/map/new', {
         method: 'POST',
         body: JSON.stringify({
-            userId: 1,
-            title: title,
+            userId,
+            title,
             maxZoomLevel: zoomLevel
         })
       })
@@ -52,7 +52,11 @@ export default function CreateMapModal ({ maps, setMaps }) {
         ]
         );
 
-        toast.success('New map created successfully!', {
+        if (maps == null || maps?.length === 0) {
+          setSelectedMap(newMap);
+        }
+
+        toast.success('New map created successfully! Tiling and uploading may take a minute or two.', {
           position: 'top-left',
         })
         setOpenModal(false);
