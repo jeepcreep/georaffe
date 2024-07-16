@@ -1,5 +1,5 @@
 import { Schema, model, models } from 'mongoose';
-import { MapStatus } from '@utils/enums';
+import { MapStatus, MapScope } from '@utils/enums';
 
 const ControlPointSchema = new Schema({
     fromPoint: {
@@ -48,6 +48,16 @@ const MapSchema = new Schema({
     maxZoomLevel: {
         type: Number,
         default: 5
+    },
+    scope: {
+        type: String,
+        default: MapScope.Private
+    },
+    yearDepicted: {
+        type: String
+    },
+    locationDepicted: {
+        type: String
     },
     controlPoints: [ControlPointSchema],
 }, { timestamps: true, })

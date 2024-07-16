@@ -126,6 +126,14 @@
   @apply bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent;
 }
 
+.blue_gradient_light {
+  @apply bg-gradient-to-r from-blue-400 to-cyan-400;
+}
+
+.blue_gradient_btn {
+  @apply bg-gradient-to-r from-blue-600 to-cyan-600;
+}
+
 .desc {
   @apply mt-5 text-lg text-gray-600 sm:text-xl max-w-3xl;
 }

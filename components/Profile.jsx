@@ -1,7 +1,7 @@
 const Profile = ({ name, desc }) => {
   return (
     <section className="w-full">
-      <h1 className="head_text text-left">
+      <h1 className="subhead_text text-left">
         <span className="blue_gradient">{name} Profile</span>
       </h1>
       <p className="desc text-left">

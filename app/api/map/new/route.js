@@ -4,11 +4,12 @@ import mongoose from 'mongoose';
 import Map from "@models/map";
 
 export const POST = async (req) => {
-    const { userId, title, maxZoomLevel } = await req.json();
+    const { userId, title, maxZoomLevel, scope } = await req.json();
 
     console.log('user id : ' + userId);
     console.log('title : ' + title);
     console.log('maxZoomLevel : ' + maxZoomLevel);
+    console.log('scope : ' + scope);
 
     await connectToDatabase();
 
@@ -16,7 +17,8 @@ export const POST = async (req) => {
         const newMap = new Map({
             user: userId, 
             title,
-            maxZoomLevel
+            maxZoomLevel,
+            scope
         })
 
         await newMap.save();

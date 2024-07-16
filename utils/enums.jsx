@@ -9,6 +9,24 @@ export const MapStatus = {
     Ready: 'ready'
 }
 
+export const MapScope = {
+    Private: 'private',
+    Public: 'public',
+    Shared: 'shared'
+}
+
+export const MapScopes = [
+    MapScope.Private, 
+    MapScope.Public, 
+    MapScope.Shared
+]
+
+export const MapScopeInfo = {
+    'private': 'You are the only one who can see this map.', 
+    'public': 'Everyone can find and enjoy your map',
+    'shared': 'Everyone can find and even modify your map'
+}
+
 export const CurrentControlPointStatus = {
     FromPointSelected: 'fromPointSelected',
     ToPointSelected: 'toPointSelected',
