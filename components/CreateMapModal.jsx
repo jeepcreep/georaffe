@@ -1,23 +1,33 @@
 
 "use client";
 
-import { Button, FileInput, Label, Modal, TextInput, Spinner, RangeSlider } from "flowbite-react";
+import { Button, FileInput, Label, Modal, TextInput, Spinner, RangeSlider, Dropdown } from "flowbite-react";
 import { useState } from "react";
+
+import { MapScope, MapScopes, MapScopeInfo } from "@utils/enums";
+
+import { MdOutlineArrowDropDown } from "react-icons/md";
 
 import toast from 'react-hot-toast';
 
 export default function CreateMapModal ({ maps, setMaps, userId, setSelectedMap }) {
   const [openModal, setOpenModal] = useState(false);
   const [title, setTitle] = useState('');
+  const [year, setYear] = useState('');
   const [file, setFile] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(5);
+  const [scope, setScope] = useState(MapScope.Public)
+  const [scopeInfo, setScopeInfo] = useState(MapScopeInfo[MapScope.Public])
+  const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false);
 
   function onCloseModal() {
     setOpenModal(false);
     setTitle('');
+    setYear('');
     setFile(null);
     setZoomLevel(5);
+    setScope(MapScope.Public);
   }
 
   const handleFileChange = (e) => {
@@ -38,7 +48,9 @@ export default function CreateMapModal ({ maps, setMaps, userId, setSelectedMap 
         body: JSON.stringify({
             userId,
             title,
-            maxZoomLevel: zoomLevel
+            maxZoomLevel: zoomLevel,
+            scope,
+            year
         })
       })
 
@@ -85,7 +97,7 @@ export default function CreateMapModal ({ maps, setMaps, userId, setSelectedMap 
   return (
     <>
 
-      <Button onClick={() => setOpenModal(true)}>Upload new map</Button>
+      <Button className='blue_gradient_btn' onClick={() => setOpenModal(true)}>Upload new map</Button>
       <Modal show={openModal} size="md" onClose={onCloseModal} popup>
         <Modal.Header />
         <Modal.Body>
@@ -102,13 +114,14 @@ export default function CreateMapModal ({ maps, setMaps, userId, setSelectedMap 
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   required
+                  sizing="sm"
                 />
-              </div>
+              </div>  
 
               <div className="flex w-full items-center justify-center">
                 <Label
                   htmlFor="dropzone-file"
-                  className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                  className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600"
                 >
                   <div className="flex flex-col items-center justify-center pb-6 pt-5">
                     <svg
@@ -142,23 +155,48 @@ export default function CreateMapModal ({ maps, setMaps, userId, setSelectedMap 
                 </Label>
               </div>
 
-              <div>
-                <div className="mb-1 block">
-                  <Label htmlFor="default-range" value="Max. zoom level" />: {zoomLevel}
+              
+              <div class="flex w-full flex-row">
+                <div class="w-1/2 flex-col mx-2">
+                  <div className="mb-1 block">
+                    <Label htmlFor="default-range" value="Max. zoom level" />: {zoomLevel}
+                  </div>
+                  <RangeSlider 
+                    id="zoom-level" 
+                    min="1" 
+                    max="6" 
+                    value={zoomLevel}
+                    onChange={(event) => setZoomLevel(event.target.value)}/>
+                  <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
+                        The higher the more more you'll be able to zoom in on details.
+                  </div>
                 </div>
-                <RangeSlider 
-                  id="zoom-level" 
-                  min="1" 
-                  max="6" 
-                  value={zoomLevel}
-                  onChange={(event) => setZoomLevel(event.target.value)}/>
-                <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
-                      The higher, the longer it takes to process the image
+                
+                <div class="w-1/2 flex-col mx-2">
+                  <div className="mb-1 block">
+                    Scope
+                  </div>
+                  <Dropdown dismissOnClick={true} renderTrigger={() => <Button size="xs" className='blue_gradient_btn'>{scope}<MdOutlineArrowDropDown className="ml-2 h-5 w-5"/></Button>}>
+                    {MapScopes.map(mapScope => 
+                      <Dropdown.Item 
+                        className={mapScope == scope ? 'selected_item' : ''}
+                        onClick={() => {
+                            setScope(mapScope);
+                            setScopeInfo(MapScopeInfo[mapScope]);
+                            }}>
+                          {mapScope}
+                      </Dropdown.Item>
+                    )}
+                  </Dropdown>
+                  <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
+                        {scopeInfo}
+                  </div>
                 </div>
-              </div>
 
+              </div>
+              
               <div className="w-full">
-                <Button type="submit" disabled={isLoading}>
+                <Button className='blue_gradient_btn' type="submit" disabled={isLoading}>
                   {
                   isLoading ? (
                     <div>
@@ -166,6 +204,9 @@ export default function CreateMapModal ({ maps, setMaps, userId, setSelectedMap 
                     </div> ) : ( 'Create' )
                   }
                 </Button>
+                <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
+                    Please only upload images that are free to use
+                </div>
               </div>
             </div>
           </form>

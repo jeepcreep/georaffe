@@ -17,9 +17,12 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { useEffect, useMemo, useRef, useCallback } from 'react'
 import toast from 'react-hot-toast';
-import { Button, Label } from "flowbite-react";
+import { Button, Tooltip } from "flowbite-react";
 import Loading from './loading';
-import { CurrentControlPointStatus } from "@utils/enums";
+import { CurrentControlPointStatus, MapScope, MapScopeInfo } from "@utils/enums";
+
+import { MdPublic, MdPublicOff, MdHandshake } from "react-icons/md";
+
 
 export default function GeorefMap({selectedMap, s3TilesBucket, s3Region}) {
   let rasterCoordsRef = useRef(null);
@@ -273,10 +276,10 @@ export default function GeorefMap({selectedMap, s3TilesBucket, s3Region}) {
             </div> */}
             <div className='w-full flex-center flex-row my-2.5'>
               {!isNew ? (
-                <span className='mx-1.5'><Button onClick={(e) => editControlPoint(e, controlPoint, markerId)}>Edit</Button></span>
+                <span className='mx-1.5'><Button className='blue_gradient_btn' onClick={(e) => editControlPoint(e, controlPoint, markerId)}>Edit</Button></span>
               ) : ( <></>)
               }
-              <span className='mx-1.5'><Button key="delete-control-point-button" color="failure" onClick={(e) => deleteControlPoint(e, controlPoint, isRasterImage, isNew, markerId)}>Delete</Button></span>
+              <span className='mx-1.5'><Button className='blue_gradient_btn' key="delete-control-point-button" color="failure" onClick={(e) => deleteControlPoint(e, controlPoint, isRasterImage, isNew, markerId)}>Delete</Button></span>
             </div>
           </div>
         </Popup>
@@ -364,7 +367,8 @@ export default function GeorefMap({selectedMap, s3TilesBucket, s3Region}) {
       const tileLayer = L.tileLayer(s3ImageUrl + '/{z}/{x}/{y}.png', {
         noWrap: true,
         bounds: rc.getMaxBounds(),
-        maxNativeZoom: rc.zoomLevel()
+        maxNativeZoom: rc.zoomLevel(),
+        attribution: selectedMap.title
       })
       // const bounds = L.latLng(props.center).toBounds(props.size)
       // const square = new L.Rectangle(bounds)
@@ -379,12 +383,63 @@ export default function GeorefMap({selectedMap, s3TilesBucket, s3Region}) {
     return null;
   };
 
+  const ScopeIcon = () => {
+     if (selectedMap.scope == MapScope.Public) {
+       return (
+        <MdPublic className="ml-2 h-5 w-5"/>
+       )
+     }
+     else if (selectedMap.scope == MapScope.Private) {
+      return (
+       <MdPublicOff className="ml-2 h-5 w-5"/>
+      )
+    }
+    else if (selectedMap.scope == MapScope.Shared) {
+      return (
+        <MdHandshake className="ml-2 h-5 w-5"/>
+      )
+    }
+  }
+
   return (
     <section className='w-full flex-center flex-col'>
 
         <div className='w-full flex-center flex-row my-1'>
-          {controlPoints.length > 0 ? controlPoints.length + ' control points selected' : ''}
+            <div className='w-1/4'>
+              <div className='w-full flex-center my-2.5 min-w-11 flex-center'>
+                {controlPointStatus.current == CurrentControlPointStatus.ReadyForSaving ? (
+                  <Button className='blue_gradient_btn' onClick={() => saveControlPoint(true)}>Save control point</Button>
+                ) : ( <></>)
+                }
+                {controlPointStatus.current == CurrentControlPointStatus.EditExisting ? (
+                  <Button className='blue_gradient_btn' onClick={() => saveControlPoint(false)}>Save changes</Button>
+                ) : ( <></>)
+                }
+              </div>
+            </div>
+            <div className='w-3/4'>
+            <div className='w-full flex-center my-2.5 min-w-11'>
+                <div className=''>
+                  <Tooltip content={selectedMap.scope + ': ' + MapScopeInfo[selectedMap.scope]} style="light">
+                    <ScopeIcon />
+                  </Tooltip>
+                </div>
+                <div className=''>
+                  <div className='mx-2'>{selectedMap.title}</div>
+                </div>
+                <div className=''>
+                  {selectedMap.locationDepicted ? ' - ' + selectedMap.locationDepicted : ''}
+               </div>
+               <div className=''>
+                {selectedMap.yearDepicted ? ' - ' + selectedMap.yearDepicted : ''}
+                </div>
+                <div className=''>
+                  <div className='mx-2'> - {controlPoints.length  + ' control points selected'}</div>
+                </div> 
+              </div>
+            </div>
         </div>  
+
       <div className='w-full flex-center flex-row'>
 
           <div className='w-1/2 mx-2.5'>
@@ -438,16 +493,7 @@ export default function GeorefMap({selectedMap, s3TilesBucket, s3Region}) {
           </div>
 
       </div>
-      <div className='w-full flex-center flex-row my-2.5'>
-        {controlPointStatus.current == CurrentControlPointStatus.ReadyForSaving ? (
-          <Button onClick={() => saveControlPoint(true)}>Save control point</Button>
-        ) : ( <></>)
-        }
-        {controlPointStatus.current == CurrentControlPointStatus.EditExisting ? (
-          <Button onClick={() => saveControlPoint(false)}>Save changes</Button>
-        ) : ( <></>)
-        }
-      </div>
+    
     </section>
   );
 };

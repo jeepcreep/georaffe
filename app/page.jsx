@@ -11,6 +11,7 @@ import React, { Suspense } from 'react'
 import Image from 'next/image';
 import MyMapsDrawer from '@components/MyMapsDrawer';
 import CreateMapModal from '@components/CreateMapModal';
+import EditMapModal from '@components/EditMapModal';
 import { useState, useEffect } from 'react';
 import { Button } from "flowbite-react";
 
@@ -118,7 +119,7 @@ const Home = () => {
 
             <div className='w-full flex-center flex-row my-2.5'>
               {selectedMap != null && selectedMap != undefined && selectedMap.controlPoints && selectedMap.controlPoints.length >= 3 ? (
-                <Button onClick={() => toggleOverlayMap(true)}>{displayOverlayMap ? 'Georeference' : 'Overlay map'}</Button>
+                <Button className='blue_gradient_btn' onClick={() => toggleOverlayMap(true)}>{displayOverlayMap ? 'Georeference' : 'Overlay map'}</Button>
               ) : ( <></>)
               }
             </div>
@@ -158,7 +159,18 @@ const Home = () => {
                 )
               }
               
-              <CreateMapModal maps={maps} setMaps={setMaps} userId={session?.user.id} setSelectedMap={setSelectedMap}/>
+              <div className='flex-center flex-col'>
+                <div className='my-3'>
+                  <CreateMapModal maps={maps} setMaps={setMaps} userId={session?.user.id} setSelectedMap={setSelectedMap}/>
+                </div>
+                {selectedMap.status == MapStatus.Ready ? (
+                  <div className='my-3'>
+                    <EditMapModal maps={maps} setMaps={setMaps} userId={session?.user.id} selectedMap={selectedMap} setSelectedMap={setSelectedMap}/>
+                  </div>
+                ) : (
+                  <></>
+                )}
+              </div>
             </div>
         </div>
 

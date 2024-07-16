@@ -16,7 +16,7 @@ export const GET = async (req, { params }) => {
 }
 
 export const PATCH = async (req, { params }) => {
-    const { status, fileId, width, height } = await req.json();
+    const { status, fileId, width, height, title, scope, year, location } = await req.json();
 
     try {
         const existingMap = await getMapById(params.id);
@@ -34,6 +34,18 @@ export const PATCH = async (req, { params }) => {
         }
         if (height) {
             existingMap.height = height;
+        }
+        if (title) {
+            existingMap.title = title;
+        }
+        if (scope) {
+            existingMap.scope = scope;
+        }
+        if (year) {
+            existingMap.yearDepicted = year;
+        }
+        if (location) {
+            existingMap.locationDepicted = location;
         }
 
         await existingMap.save();

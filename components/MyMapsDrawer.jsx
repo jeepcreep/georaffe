@@ -1,12 +1,11 @@
 
 "use client";
 
-import { Button, Drawer, Sidebar, Avatar, Dropdown, Spinner } from "flowbite-react";
+import { Button, Drawer, Sidebar, Avatar, Dropdown, Spinner, Tooltip, Badge } from "flowbite-react";
 import { useState } from "react";
-
 import toast from 'react-hot-toast';
-
 import { MapStatus } from "@utils/enums";
+import { MdDelete } from "react-icons/md";
 
 import {
     HiDotsVertical
@@ -17,7 +16,9 @@ export default function MyMapsDrawer({ maps, setMaps, selectedMap, setSelectedMa
 
   const handleClose = () => setIsOpen(false);
 
-  const handleDelete = async (mapId) => {
+  const handleDelete = async (mapId, e) => {
+    e.stopPropagation();
+    
     const hasConfirmed = confirm("Are you sure you want to delete this map?");  
 
     if (hasConfirmed) {
@@ -72,11 +73,13 @@ export default function MyMapsDrawer({ maps, setMaps, selectedMap, setSelectedMa
             <div className="flex h-full flex-row justify-between py-2">
               <div className='flex flow-row px-2 text-cyan-600 hover:no-underline dark:text-cyan-500'>
                 <Avatar img={getFullImageUrl(map.fileId)} className="px-2"/>
-                <span>{map.title}</span>
+                <Tooltip content={selectedMap.controlPoints.length + ' control points'} style="light">
+                  <span>{map.title}</span>
+                </Tooltip>
               </div>
-              <Dropdown placement="left" label="" dismissOnClick={false} renderTrigger={() => <span className="cursor-pointer"><HiDotsVertical /></span>}>
-                <Dropdown.Item onClick={() => handleDelete(map._id)}>Delete</Dropdown.Item>
-              </Dropdown>
+              <Tooltip content="Delete map" style="light">
+                <Badge size="sm" color="failure" icon={MdDelete} onClick={(e) => handleDelete(map._id, e)} />
+              </Tooltip>
             </div>
             ): (
               <div className="flex h-full flex-row justify-between py-2 text-gray-300">
@@ -92,7 +95,7 @@ export default function MyMapsDrawer({ maps, setMaps, selectedMap, setSelectedMa
   return (
     <>
       <div className="flex min-h-[50vh] items-center justify-center">
-        <Button onClick={() => setIsOpen(true)}>My Maps</Button>
+        <Button className='blue_gradient_btn' onClick={() => setIsOpen(true)}>My Maps</Button>
       </div>
       <Drawer open={isOpen} onClose={handleClose} className="drawer">
         <Drawer.Header title="My Maps" />
