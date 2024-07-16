@@ -12,7 +12,7 @@ const UserSchema = new Schema({
     image: {
         type: String
     }
-});
+}, { timestamps: true, });
 
 const User = models.User || model("User", UserSchema);
 
