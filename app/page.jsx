@@ -124,7 +124,7 @@ const Home = () => {
               }
             </div>
             <div className='w-full flex-center flex-row'>
-            {selectedMap != null && selectedMap != undefined ? (
+            {selectedMap !== null && selectedMap !== undefined ? (
                 <Suspense fallback={<Loading />}>
                   <MyMapsDrawer maps={maps} setMaps={setMaps} selectedMap={selectedMap} setSelectedMap={setSelectedMap}/>
 
@@ -163,7 +163,7 @@ const Home = () => {
                 <div className='my-3'>
                   <CreateMapModal maps={maps} setMaps={setMaps} userId={session?.user.id} setSelectedMap={setSelectedMap}/>
                 </div>
-                {selectedMap.status == MapStatus.Ready ? (
+                {selectedMap != undefined && selectedMap != null && selectedMap.status == MapStatus.Ready ? (
                   <div className='my-3'>
                     <EditMapModal maps={maps} setMaps={setMaps} userId={session?.user.id} selectedMap={selectedMap} setSelectedMap={setSelectedMap}/>
                   </div>
