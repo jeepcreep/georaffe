@@ -24,7 +24,7 @@ import { CurrentControlPointStatus, MapScope, MapScopeInfo } from "@utils/enums"
 import { MdPublic, MdPublicOff, MdHandshake } from "react-icons/md";
 
 
-export default function GeorefMap({selectedMap, s3TilesBucket, s3Region}) {
+export default function GeorefMap({selectedMap, s3TilesBucket, s3Region, controlPoints, setControlPoints}) {
   let rasterCoordsRef = useRef(null);
   if (rasterCoordsRef !== null) {
     rasterCoordsRef.current = null;
@@ -33,7 +33,7 @@ export default function GeorefMap({selectedMap, s3TilesBucket, s3Region}) {
   const [controlPointSelection, setControlPointSelection] = useState({});
   let controlPointStatus = useRef(CurrentControlPointStatus.FreeForSelection);
 
-  const [controlPoints, setControlPoints] = useState(selectedMap.controlPoints? selectedMap.controlPoints : []);
+  // const [controlPoints, setControlPoints] = useState(selectedMap.controlPoints? selectedMap.controlPoints : []);
 
   console.log('no of control points : ' + controlPoints.length);
 

@@ -28,6 +28,8 @@ const Home = () => {
   const [schedulerStarted, setSchedulerStarted] = useState(false)
   const [displayOverlayMap, setDisplayOverlayMap] = useState(false);
 
+  const [controlPoints, setControlPoints] = useState(selectedMap?.controlPoints? selectedMap.controlPoints : []);
+
   const { data: session } = useSession();
 
   useEffect( () => {
@@ -118,7 +120,7 @@ const Home = () => {
         <div className='w-full flex-center flex-col'>
 
             <div className='w-full flex-center flex-row my-2.5'>
-              {selectedMap != null && selectedMap != undefined && selectedMap.controlPoints && selectedMap.controlPoints.length >= 3 ? (
+              {controlPoints && controlPoints.length >= 3 ? (
                 <Button className='blue_gradient_btn' onClick={() => toggleOverlayMap(true)}>{displayOverlayMap ? 'Georeference' : 'Overlay map'}</Button>
               ) : ( <></>)
               }
@@ -130,7 +132,11 @@ const Home = () => {
 
                   {selectedMap.status == MapStatus.Ready ? (
                     !displayOverlayMap ? (
-                    <GeorefMap selectedMap={selectedMap} s3TilesBucket={process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET} s3Region={process.env.NEXT_PUBLIC_AWS_S3_REGION}/>
+                    <GeorefMap selectedMap={selectedMap} 
+                              s3TilesBucket={process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET} 
+                              s3Region={process.env.NEXT_PUBLIC_AWS_S3_REGION}
+                              controlPoints={controlPoints}
+                              setControlPoints={setControlPoints} />
                   ) : (
                     <OverlayMap selectedMap={selectedMap}/>
                   )

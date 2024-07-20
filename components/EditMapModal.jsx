@@ -70,7 +70,7 @@ export default function EditMapModal ({ maps, setMaps, userId, selectedMap, setS
   return (
     <>
 
-      <Button className='blue_gradient_btn' onClick={() => setOpenModal(true)}>Edit current map</Button>
+      <Button className='blue_gradient_btn' onClick={() => setOpenModal(true)}>Edit map details</Button>
       <Modal show={openModal} size="md" onClose={onCloseModal} popup>
         <Modal.Header />
         <Modal.Body>
