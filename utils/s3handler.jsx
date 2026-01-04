@@ -16,6 +16,7 @@ let uploading = false;
 
 const s3Client = new S3Client({
     region: process.env.AWS_S3_REGION,
+    endpoint: process.env.AWS_S3_ENDPOINT,
     credentials: {
       accessKeyId: process.env.AWS_S3_ACCESSKEYID,
       secretAccessKey: process.env.AWS_S3_SECRETACCESSKEY,
@@ -52,7 +53,7 @@ export const deleteFromS3Bucket = async (s3Filename, bucket) => {
 }
 
 export const getFullImageUrl = (filename) => {
-    let fullUrl = `https://${process.env.AWS_S3_TILES_BUCKET}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${filename}/tiles`;
+    let fullUrl = `${process.env.NEXT_PUBLIC_TILES_HOST_URL}/${filename}/tiles`;
     return fullUrl;
 }
 

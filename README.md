@@ -36,14 +36,13 @@ Required tools installed or services running:
 * Google OAuth client:
     * expose GOOGLE_ID and GOOGLE_CLIENT_SECRET as (secret) env vars
     * remember to use different values for dev and prod
-* S3 bucket reachable either from anywhere or matched to your deployed domain (please make sure to allow CORS!)
+* S3 bucket (or Cloudflare R2 bucket) reachable either from anywhere or matched to your deployed domain (please make sure to allow CORS!)
     * expose AWS_S3_ACCESSKEYID, AWS_S3_SECRETACCESSKEY secretly
     * in addition the following default values are set for a few additional env vars (as per .env):
-        * AWS_S3_REGION=eu-central-1
+        * AWS_S3_REGION=auto (or your specific region)
+        * AWS_S3_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
         * AWS_S3_TILES_BUCKET=georef-tiles
-        * AWS_S3_IAM=georef-bucket-user (the IAM account with adequate permission to read, write and modify above bucket)
-        * NEXT_PUBLIC_AWS_S3_REGION=eu-central-1
-        * NEXT_PUBLIC_AWS_S3_TILES_BUCKET=georef-tiles
+        * NEXT_PUBLIC_TILES_HOST_URL=https://<YOUR_CUSTOM_DOMAIN> (e.g. https://tiles.georaffe.org)
 * Also in order to deploy to production don't forget to adapt HOST_BASE_URL in .env.production to match your domain
 
 

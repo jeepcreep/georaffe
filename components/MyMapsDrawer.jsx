@@ -42,7 +42,7 @@ export default function MyMapsDrawer({ maps, setMaps, selectedMap, setSelectedMa
 
   const getFullImageUrl = (fileId) => {
     const filenameWithoutExt = fileId.substring(0, fileId.lastIndexOf('.'));
-    let fullUrl = `https://${process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_S3_REGION}.amazonaws.com/${filenameWithoutExt}/tiles/0/0/0.png`;
+    let fullUrl = `${process.env.NEXT_PUBLIC_TILES_HOST_URL}/${filenameWithoutExt}/tiles/0/0/0.png`;
     return fullUrl;
   }
 
