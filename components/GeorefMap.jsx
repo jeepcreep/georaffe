@@ -24,7 +24,7 @@ import { CurrentControlPointStatus, MapScope, MapScopeInfo } from "@utils/enums"
 import { MdPublic, MdPublicOff, MdHandshake } from "react-icons/md";
 
 
-export default function GeorefMap({selectedMap, s3TilesBucket, s3Region, controlPoints, setControlPoints}) {
+export default function GeorefMap({selectedMap, tilesHostUrl, controlPoints, setControlPoints}) {
   let rasterCoordsRef = useRef(null);
   if (rasterCoordsRef !== null) {
     rasterCoordsRef.current = null;
@@ -334,7 +334,7 @@ export default function GeorefMap({selectedMap, s3TilesBucket, s3Region, control
 
   const getFullImageUrl = (filename) => {
     const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
-    let fullUrl = `https://${s3TilesBucket}.s3.${s3Region}.amazonaws.com/${filenameWithoutExt}/tiles`;
+    let fullUrl = `${tilesHostUrl}/${filenameWithoutExt}/tiles`;
     return fullUrl;
  }
 

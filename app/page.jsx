@@ -133,8 +133,7 @@ const Home = () => {
                   {selectedMap.status == MapStatus.Ready ? (
                     !displayOverlayMap ? (
                     <GeorefMap selectedMap={selectedMap} 
-                              s3TilesBucket={process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET} 
-                              s3Region={process.env.NEXT_PUBLIC_AWS_S3_REGION}
+                              tilesHostUrl={process.env.NEXT_PUBLIC_TILES_HOST_URL}
                               controlPoints={controlPoints}
                               setControlPoints={setControlPoints} />
                   ) : (

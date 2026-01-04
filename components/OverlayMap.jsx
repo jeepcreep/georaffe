@@ -115,7 +115,7 @@ export default function OverlayMap({selectedMap}) {
             const filename = selectedMap.fileId;
             const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
             const fileExt = filename.substring(filename.lastIndexOf('.') + 1);
-            const fullUrl = `https://${process.env.NEXT_PUBLIC_AWS_S3_TILES_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_S3_REGION}.amazonaws.com/${filenameWithoutExt}/${filenameWithoutExt}_reduced.${fileExt}`;        
+            const fullUrl = `${process.env.NEXT_PUBLIC_TILES_HOST_URL}/${filenameWithoutExt}/${filenameWithoutExt}_reduced.${fileExt}`;        
 
             const arrugatorLayer = new L.ImageOverlay.Arrugator(
                 // First argument to the factory/constructor is the URL of the image. Only png/jpg.
