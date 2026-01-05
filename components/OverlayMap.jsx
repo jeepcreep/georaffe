@@ -59,15 +59,26 @@ export default function OverlayMap({selectedMap}) {
 
     const GeoRefOverlay = ({selectedMap}) => {
 
+        // Define projections
+        proj4.defs("EPSG:4839","+proj=lcc +lat_0=51 +lon_0=10.5 +lat_1=48.6666666666667 +lat_2=53.6666666666667 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
+        proj4.defs("EPSG:3395","+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs");
+        
+        // We use this to project GCPs from Lng/Lat to Meters (Web Mercator) BEFORE the transform
+        const wgs84ToMercator = proj4('WGS84','EPSG:3857').forward;
+
         var transformGcps = [];
         for (var controlPoint of selectedMap.controlPoints) {
+            // Project the GCP destination to meters immediately
+            // toPoint is [Lat, Lng], so we flip to [Lng, Lat] for proj4
+            const projectedPoint = wgs84ToMercator([controlPoint.toPoint[1], controlPoint.toPoint[0]]);
+            
             transformGcps.push({
                 source: controlPoint.rasterImageCoords,
-                destination: [controlPoint.toPoint[1], controlPoint.toPoint[0]]
+                destination: projectedPoint
             })
         }
 
-        console.log('transformGcps : ' + transformGcps);
+        console.log('transformGcps (in meters) : ' + JSON.stringify(transformGcps));
 
         const options = {
             differentHandedness: true,
@@ -76,7 +87,8 @@ export default function OverlayMap({selectedMap}) {
         }
 
         const transformer = new GcpTransformer(transformGcps, transformationType)
-        //const transformedPoint = transformer.transformForward([4146.178, 1424], options)
+        
+        // These points are now in Web Mercator Meters
         const pointTopLeft = transformer.transformForward([0, 0], options);
         const pointBottomLeft = transformer.transformForward([0, selectedMap.height], options);
         const pointTopRight = transformer.transformForward([selectedMap.width, 0], options);
@@ -90,11 +102,9 @@ export default function OverlayMap({selectedMap}) {
         const context = useLeafletContext();
         const map = useMap();
 
-        proj4.defs("EPSG:4839","+proj=lcc +lat_0=51 +lon_0=10.5 +lat_1=48.6666666666667 +lat_2=53.6666666666667 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
-        proj4.defs("EPSG:3395","+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs");
-
-        //const forwardProj = proj4('EPSG:4839','EPSG:3857').forward;
-        const forwardProj = proj4('WGS84','EPSG:3857').forward;
+        // Identity projector: The coordinates are already in EPSG:3857 (Meters)
+        // so the Arrugator doesn't need to project them again.
+        const identityProjector = (coords) => coords;
 
         useEffect(() => {
 
@@ -139,7 +149,7 @@ export default function OverlayMap({selectedMap}) {
                     // The "projector" option must be a forward-projection function.
                     // Leveraging proj4 as follows is recommended.
                     // It's up to the developer to ensure that the destination projection matches the Leaflet display CRS.
-                    projector: forwardProj,
+                    projector: identityProjector,
             
                     // The "epsilon" option controls how much the triangular mesh will be subdivided.
                     // Set it to the *square* of the maximum expected error, in units of the destination CRS.
