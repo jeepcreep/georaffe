@@ -127,6 +127,8 @@ export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
         })
       })
 
+    const tilesDir = filename.substring(0, filename.lastIndexOf('.')) + '/tiles';
+
     console.log(`[Tiling] Spawning python3 with args: utils/gdal2tiles.py -p raster -l -z 0-${maxZoomLevel} ${filename} ${tilesDir}`);
 
     const pythonProcess = spawn('python3', [
