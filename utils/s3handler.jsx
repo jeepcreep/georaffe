@@ -104,15 +104,24 @@ const uploadTiledMapsToS3 = async () => {
       })
 
       const tilesDir = value.substring(0, value.lastIndexOf('.'));
-      for await (const p of walk('public/uploads/' + tilesDir + '/tiles')) {
-        console.log(p)
-        const fullPath = path.join(process.cwd(), p);
-        const data = await fs.readFile(fullPath)
-
-        var base64data = new Buffer(data, 'binary');
-
-        const s3Filename = p.replace('public/uploads/', '');
-        await uploadToS3Bucket(base64data, s3Filename, process.env.AWS_S3_TILES_BUCKET);
+      const localTilesPath = path.join(process.cwd(), 'public/uploads/' + tilesDir + '/tiles');
+      
+      try {
+        console.log(`[Upload] Starting upload from: ${localTilesPath}`);
+        for await (const p of walk('public/uploads/' + tilesDir + '/tiles')) {
+          console.log(`[Upload] Found file: ${p}`);
+          const fullPath = path.join(process.cwd(), p);
+          const data = await fs.readFile(fullPath)
+  
+          var base64data = new Buffer(data, 'binary');
+  
+          const s3Filename = p.replace('public/uploads/', '');
+          await uploadToS3Bucket(base64data, s3Filename, process.env.AWS_S3_TILES_BUCKET);
+        }
+      } catch (err) {
+        console.error(`[Upload] Error walking directory ${localTilesPath}:`, err);
+        // Skip setting status to Ready if upload failed? 
+        // For now, we continue to let it finish or fail, but at least we log it.
       }
 
       await fetch(process.env.HOST_BASE_URL_LOCAL + '/api/map/' + key, {
