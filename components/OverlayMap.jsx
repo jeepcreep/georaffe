@@ -107,25 +107,52 @@ export default function OverlayMap({selectedMap}) {
         const pointBottomRight = transformer.transformForward([selectedMap.width, selectedMap.height], options);
 
         // Sanity check for NaNs which cause Leaflet crashes
-        if ([pointTopLeft, pointBottomLeft, pointTopRight, pointBottomRight].some(p => isNaN(p[0]) || isNaN(p[1]))) {
+        if ([pointTopLeft, pointBottomLeft, pointTopRight, pointBottomRight].some(p => !p || isNaN(p[0]) || isNaN(p[1]))) {
             console.error("Georeferencer produced NaN coordinates. Check GCP validity or polynomial order.");
+            console.error("TopLeft:", pointTopLeft);
+            console.error("BottomLeft:", pointBottomLeft);
+            console.error("TopRight:", pointTopRight);
+            console.error("BottomRight:", pointBottomRight);
             return null;
         }
 
-        console.log('pointTopLeft : ' + pointTopLeft);
-        console.log('pointBottomLeft : ' + pointBottomLeft);
-        console.log('pointTopRight : ' + pointTopRight);
-        console.log('pointBottomRight : ' + pointBottomRight);
+        console.log('--- DEBUG GEOREF ---');
+        console.log('GCPs (Pixel -> Meter):', transformGcps);
+        console.log('Transformer created.');
+        console.log('Projected TopLeft (Meters):', pointTopLeft);
+        
+        // Test the projector function manually
+        try {
+            const testPoint = arrugatorProjector([100, 100]);
+            console.log('Test Projection [100, 100] ->', testPoint);
+            if (!testPoint || isNaN(testPoint[0]) || isNaN(testPoint[1])) {
+                throw new Error("Projector function returned NaN/Null");
+            }
+        } catch (e) {
+            console.error("Projector function failed sanity check:", e);
+            return null;
+        }
 
         const context = useLeafletContext();
         const map = useMap();
 
         // The projector function for Arrugator.
         // It takes a point in the source image (Pixels) and returns a point in the destination CRS (Meters).
-        // This is exactly what our transformer does.
         const arrugatorProjector = (coords) => {
-            const result = transformer.transformForward(coords, options);
-            return result;
+            try {
+                const result = transformer.transformForward(coords, options);
+                // Check for validity
+                if (!result || isNaN(result[0]) || isNaN(result[1])) {
+                    console.warn(`Arrugator projector produced invalid coords for pixel [${coords}]:`, result);
+                    // Return a safe fallback (e.g., center of map or 0,0) to prevent crash
+                    // Returning 0,0 (Null Island) is safer than crashing
+                    return [0, 0];
+                }
+                return result;
+            } catch (err) {
+                console.error("Arrugator projector crashed:", err);
+                return [0, 0];
+            }
         };
 
         useEffect(() => {
