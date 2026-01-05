@@ -127,9 +127,7 @@ export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
         })
       })
 
-    console.log('calling python3 gdal2tiles.py with file : ' + filename);
-
-    const tilesDir = filename.substring(0, filename.lastIndexOf('.')) + '/tiles';
+    console.log(`[Tiling] Spawning python3 with args: utils/gdal2tiles.py -p raster -l -z 0-${maxZoomLevel} ${filename} ${tilesDir}`);
 
     const pythonProcess = spawn('python3', [
         'utils/gdal2tiles.py',
@@ -153,15 +151,30 @@ export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
     // ]);
 
     pythonProcess.stdout.on('data', (data) => {
-        console.log(`stdout: ${data}`);
+        console.log(`[Tiling stdout]: ${data}`);
     });
       
     pythonProcess.stderr.on('data', async (data) => {
-        console.error(`stderr: ${data}`);
+        console.error(`[Tiling stderr]: ${data}`);
+    });
+
+    pythonProcess.on('error', (err) => {
+        console.error(`[Tiling] Failed to start subprocess: ${err}`);
     });
       
     pythonProcess.on('close', async (code) => {
-        console.log(`child process exited with code ${code}`);
+        console.log(`[Tiling] Child process exited with code ${code}`);
+        
+        // Verify if directory was created
+        try {
+            await fs.access(tilesDir);
+            console.log(`[Tiling] Success: Output directory exists at ${tilesDir}`);
+            const files = await fs.readdir(tilesDir);
+            console.log(`[Tiling] Directory contains ${files.length} items.`);
+        } catch (e) {
+            console.error(`[Tiling] CRITICAL ERROR: Output directory DOES NOT EXIST at ${tilesDir} after script finished!`);
+        }
+
         if (code == 0) {
             await fetch(process.env.HOST_BASE_URL_LOCAL + '/api/map/' + mapId, {
                 method: 'PATCH',
