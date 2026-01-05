@@ -62,23 +62,35 @@ export default function OverlayMap({selectedMap}) {
         // Define projections
         proj4.defs("EPSG:4839","+proj=lcc +lat_0=51 +lon_0=10.5 +lat_1=48.6666666666667 +lat_2=53.6666666666667 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
         proj4.defs("EPSG:3395","+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs");
-        
+        proj4.defs("EPSG:3857","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs");
+
         // We use this to project GCPs from Lng/Lat to Meters (Web Mercator) BEFORE the transform
         const wgs84ToMercator = proj4('WGS84','EPSG:3857').forward;
 
         var transformGcps = [];
-        for (var controlPoint of selectedMap.controlPoints) {
-            // Project the GCP destination to meters immediately
-            // toPoint is [Lat, Lng], so we flip to [Lng, Lat] for proj4
-            const projectedPoint = wgs84ToMercator([controlPoint.toPoint[1], controlPoint.toPoint[0]]);
-            
-            transformGcps.push({
-                source: controlPoint.rasterImageCoords,
-                destination: projectedPoint
-            })
+        if (selectedMap.controlPoints) {
+            for (var controlPoint of selectedMap.controlPoints) {
+                if (controlPoint.toPoint && controlPoint.toPoint.length === 2 && controlPoint.rasterImageCoords && controlPoint.rasterImageCoords.length === 2) {
+                    // Project the GCP destination to meters immediately
+                    // toPoint is [Lat, Lng], so we flip to [Lng, Lat] for proj4
+                    const projectedPoint = wgs84ToMercator([controlPoint.toPoint[1], controlPoint.toPoint[0]]);
+                    
+                    if (!isNaN(projectedPoint[0]) && !isNaN(projectedPoint[1])) {
+                        transformGcps.push({
+                            source: controlPoint.rasterImageCoords,
+                            destination: projectedPoint
+                        })
+                    }
+                }
+            }
         }
 
         console.log('transformGcps (in meters) : ' + JSON.stringify(transformGcps));
+
+        if (transformGcps.length < 3) {
+            console.warn("Not enough valid GCPs to render overlay.");
+            return null;
+        }
 
         const options = {
             differentHandedness: true,
@@ -93,6 +105,12 @@ export default function OverlayMap({selectedMap}) {
         const pointBottomLeft = transformer.transformForward([0, selectedMap.height], options);
         const pointTopRight = transformer.transformForward([selectedMap.width, 0], options);
         const pointBottomRight = transformer.transformForward([selectedMap.width, selectedMap.height], options);
+
+        // Sanity check for NaNs which cause Leaflet crashes
+        if ([pointTopLeft, pointBottomLeft, pointTopRight, pointBottomRight].some(p => isNaN(p[0]) || isNaN(p[1]))) {
+            console.error("Georeferencer produced NaN coordinates. Check GCP validity or polynomial order.");
+            return null;
+        }
 
         console.log('pointTopLeft : ' + pointTopLeft);
         console.log('pointBottomLeft : ' + pointBottomLeft);
