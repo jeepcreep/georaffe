@@ -59,38 +59,15 @@ export default function OverlayMap({selectedMap}) {
 
     const GeoRefOverlay = ({selectedMap}) => {
 
-        // Define projections
-        proj4.defs("EPSG:4839","+proj=lcc +lat_0=51 +lon_0=10.5 +lat_1=48.6666666666667 +lat_2=53.6666666666667 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
-        proj4.defs("EPSG:3395","+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs");
-        proj4.defs("EPSG:3857","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs");
-
-        // We use this to project GCPs from Lng/Lat to Meters (Web Mercator) BEFORE the transform
-        const wgs84ToMercator = proj4('WGS84','EPSG:3857').forward;
-
         var transformGcps = [];
-        if (selectedMap.controlPoints) {
-            for (var controlPoint of selectedMap.controlPoints) {
-                if (controlPoint.toPoint && controlPoint.toPoint.length === 2 && controlPoint.rasterImageCoords && controlPoint.rasterImageCoords.length === 2) {
-                    // Project the GCP destination to meters immediately
-                    // toPoint is [Lat, Lng], so we flip to [Lng, Lat] for proj4
-                    const projectedPoint = wgs84ToMercator([controlPoint.toPoint[1], controlPoint.toPoint[0]]);
-                    
-                    if (!isNaN(projectedPoint[0]) && !isNaN(projectedPoint[1])) {
-                        transformGcps.push({
-                            source: controlPoint.rasterImageCoords,
-                            destination: projectedPoint
-                        })
-                    }
-                }
-            }
+        for (var controlPoint of selectedMap.controlPoints) {
+            transformGcps.push({
+                source: controlPoint.rasterImageCoords,
+                destination: [controlPoint.toPoint[1], controlPoint.toPoint[0]]
+            })
         }
 
-        console.log('transformGcps (in meters) : ' + JSON.stringify(transformGcps));
-
-        if (transformGcps.length < 3) {
-            console.warn("Not enough valid GCPs to render overlay.");
-            return null;
-        }
+        console.log('transformGcps : ' + transformGcps);
 
         const options = {
             differentHandedness: true,
@@ -99,61 +76,25 @@ export default function OverlayMap({selectedMap}) {
         }
 
         const transformer = new GcpTransformer(transformGcps, transformationType)
-        
-        // These points are now in Web Mercator Meters
+        //const transformedPoint = transformer.transformForward([4146.178, 1424], options)
         const pointTopLeft = transformer.transformForward([0, 0], options);
         const pointBottomLeft = transformer.transformForward([0, selectedMap.height], options);
         const pointTopRight = transformer.transformForward([selectedMap.width, 0], options);
         const pointBottomRight = transformer.transformForward([selectedMap.width, selectedMap.height], options);
 
-        // Sanity check for NaNs which cause Leaflet crashes
-        if ([pointTopLeft, pointBottomLeft, pointTopRight, pointBottomRight].some(p => !p || isNaN(p[0]) || isNaN(p[1]))) {
-            console.error("Georeferencer produced NaN coordinates. Check GCP validity or polynomial order.");
-            console.error("TopLeft:", pointTopLeft);
-            console.error("BottomLeft:", pointBottomLeft);
-            console.error("TopRight:", pointTopRight);
-            console.error("BottomRight:", pointBottomRight);
-            return null;
-        }
-
-        console.log('--- DEBUG GEOREF ---');
-        console.log('GCPs (Pixel -> Meter):', transformGcps);
-        console.log('Transformer created.');
-        console.log('Projected TopLeft (Meters):', pointTopLeft);
-        
-        // Test the projector function manually
-        try {
-            const testPoint = arrugatorProjector([100, 100]);
-            console.log('Test Projection [100, 100] ->', testPoint);
-            if (!testPoint || isNaN(testPoint[0]) || isNaN(testPoint[1])) {
-                throw new Error("Projector function returned NaN/Null");
-            }
-        } catch (e) {
-            console.error("Projector function failed sanity check:", e);
-            return null;
-        }
+        console.log('pointTopLeft : ' + pointTopLeft);
+        console.log('pointBottomLeft : ' + pointBottomLeft);
+        console.log('pointTopRight : ' + pointTopRight);
+        console.log('pointBottomRight : ' + pointBottomRight);
 
         const context = useLeafletContext();
         const map = useMap();
 
-        // The projector function for Arrugator.
-        // It takes a point in the source image (Pixels) and returns a point in the destination CRS (Meters).
-        const arrugatorProjector = (coords) => {
-            try {
-                const result = transformer.transformForward(coords, options);
-                // Check for validity
-                if (!result || isNaN(result[0]) || isNaN(result[1])) {
-                    console.warn(`Arrugator projector produced invalid coords for pixel [${coords}]:`, result);
-                    // Return a safe fallback (e.g., center of map or 0,0) to prevent crash
-                    // Returning 0,0 (Null Island) is safer than crashing
-                    return [0, 0];
-                }
-                return result;
-            } catch (err) {
-                console.error("Arrugator projector crashed:", err);
-                return [0, 0];
-            }
-        };
+        proj4.defs("EPSG:4839","+proj=lcc +lat_0=51 +lon_0=10.5 +lat_1=48.6666666666667 +lat_2=53.6666666666667 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
+        proj4.defs("EPSG:3395","+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs");
+
+        //const forwardProj = proj4('EPSG:4839','EPSG:3857').forward;
+        const forwardProj = proj4('WGS84','EPSG:3857').forward;
 
         useEffect(() => {
 
@@ -198,12 +139,12 @@ export default function OverlayMap({selectedMap}) {
                     // The "projector" option must be a forward-projection function.
                     // Leveraging proj4 as follows is recommended.
                     // It's up to the developer to ensure that the destination projection matches the Leaflet display CRS.
-                    projector: arrugatorProjector,
+                    projector: forwardProj,
             
                     // The "epsilon" option controls how much the triangular mesh will be subdivided.
                     // Set it to the *square* of the maximum expected error, in units of the destination CRS.
-                    // A value of 100 means the maximum reprojection error distance shall be 10 meters (10^2).
-                    epsilon: 100,
+                    // The default of one million means that the maximum reprojection error distance shall be 1000 "meters".
+                    epsilon: 1000000,
             
                     // If you don't know what a "fragment shader" is, do not change this default.
                     // If you *do* know what a "fragment shader" is, then be aware that there's a
