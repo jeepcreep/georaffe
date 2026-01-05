@@ -60,11 +60,29 @@ export default function OverlayMap({selectedMap}) {
     const GeoRefOverlay = ({selectedMap}) => {
 
         var transformGcps = [];
-        for (var controlPoint of selectedMap.controlPoints) {
-            transformGcps.push({
-                source: controlPoint.rasterImageCoords,
-                destination: [controlPoint.toPoint[1], controlPoint.toPoint[0]]
-            })
+        if (selectedMap.controlPoints) {
+            for (var controlPoint of selectedMap.controlPoints) {
+                // Robustness check: Ensure points exist and are arrays of numbers
+                if (controlPoint.toPoint && 
+                    controlPoint.toPoint.length >= 2 && 
+                    controlPoint.toPoint[0] != null && 
+                    controlPoint.toPoint[1] != null &&
+                    controlPoint.rasterImageCoords &&
+                    controlPoint.rasterImageCoords.length >= 2 &&
+                    controlPoint.rasterImageCoords[0] != null &&
+                    controlPoint.rasterImageCoords[1] != null) {
+                        
+                    transformGcps.push({
+                        source: controlPoint.rasterImageCoords,
+                        destination: [controlPoint.toPoint[1], controlPoint.toPoint[0]]
+                    })
+                }
+            }
+        }
+
+        // If we don't have enough valid points after filtering, don't render overlay
+        if (transformGcps.length < 3) {
+            return null;
         }
 
         console.log('transformGcps : ' + transformGcps);
