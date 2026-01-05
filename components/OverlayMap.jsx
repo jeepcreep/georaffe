@@ -120,9 +120,13 @@ export default function OverlayMap({selectedMap}) {
         const context = useLeafletContext();
         const map = useMap();
 
-        // Identity projector: The coordinates are already in EPSG:3857 (Meters)
-        // so the Arrugator doesn't need to project them again.
-        const identityProjector = (coords) => coords;
+        // The projector function for Arrugator.
+        // It takes a point in the source image (Pixels) and returns a point in the destination CRS (Meters).
+        // This is exactly what our transformer does.
+        const arrugatorProjector = (coords) => {
+            const result = transformer.transformForward(coords, options);
+            return result;
+        };
 
         useEffect(() => {
 
@@ -167,7 +171,7 @@ export default function OverlayMap({selectedMap}) {
                     // The "projector" option must be a forward-projection function.
                     // Leveraging proj4 as follows is recommended.
                     // It's up to the developer to ensure that the destination projection matches the Leaflet display CRS.
-                    projector: identityProjector,
+                    projector: arrugatorProjector,
             
                     // The "epsilon" option controls how much the triangular mesh will be subdivided.
                     // Set it to the *square* of the maximum expected error, in units of the destination CRS.
