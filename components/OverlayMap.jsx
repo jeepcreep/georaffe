@@ -143,8 +143,8 @@ export default function OverlayMap({selectedMap}) {
             
                     // The "epsilon" option controls how much the triangular mesh will be subdivided.
                     // Set it to the *square* of the maximum expected error, in units of the destination CRS.
-                    // The default of one million means that the maximum reprojection error distance shall be 1000 "meters".
-                    epsilon: 1000000,
+                    // A value of 100 means the maximum reprojection error distance shall be 10 meters (10^2).
+                    epsilon: 100,
             
                     // If you don't know what a "fragment shader" is, do not change this default.
                     // If you *do* know what a "fragment shader" is, then be aware that there's a
