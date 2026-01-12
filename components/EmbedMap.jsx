@@ -29,9 +29,7 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
 
 
     useEffect(() => {
-        console.log('EmbedMap: Checking map data', selectedMap);
         if (!selectedMap || !selectedMap.controlPoints) {
-            console.log('EmbedMap: No map or control points');
             return;
         }
 
@@ -48,10 +46,8 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
                 })
             }
         }
-        console.log('EmbedMap: Transform GCPs', transformGcps);
 
         if (transformGcps.length < 3) {
-             console.log('EmbedMap: Not enough GCPs', transformGcps.length);
              return;
         }
 
@@ -62,7 +58,6 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
         }
 
         const activeTransformationType = selectedMap.transformationType || TransformationType.Polynomial;
-        console.log('EmbedMap: Using transformation type', activeTransformationType);
 
         const transformer = new GcpTransformer(transformGcps, activeTransformationType);
         
@@ -72,26 +67,19 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
         const pointTopRight = transformer.transformForward([selectedMap.width, 0], options);
         const pointBottomRight = transformer.transformForward([selectedMap.width, selectedMap.height], options);
 
-        console.log('EmbedMap: Transformed corners', { pointTopLeft, pointBottomLeft, pointTopRight, pointBottomRight });
-
         const forwardProj = proj4('WGS84', 'EPSG:3857').forward;
         
         // Setup WebGL context
          const canvas = canvasRef.current;
          if(canvas) {
-            console.log('EmbedMap: Canvas found, initializing WebGL');
             setGL(canvas.getContext("webgl2", {}));
-         } else {
-             console.error('EmbedMap: Canvas ref is null');
          }
 
 
         const filename = selectedMap.fileId;
         const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
         const fileExt = filename.substring(filename.lastIndexOf('.') + 1);
-        // Assuming NEXT_PUBLIC_TILES_HOST_URL is available in the env
         const fullUrl = `${process.env.NEXT_PUBLIC_TILES_HOST_URL}/${filenameWithoutExt}/${filenameWithoutExt}_reduced.${fileExt}`;
-        console.log('EmbedMap: Full Image URL', fullUrl);
 
         try {
             const arrugatorLayer = new L.ImageOverlay.Arrugator(
@@ -118,29 +106,19 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
                 }
             );
 
-            console.log('EmbedMap: Arrugator layer created', arrugatorLayer);
-
             const container = context.layerContainer || context.map;
             container.addLayer(arrugatorLayer);
-            console.log('EmbedMap: Layer added to container');
 
-            // Fit bounds to the overlay
-            // We can approximate bounds from the transformed corners or just let the user scroll
-            // For better UX, let's try to center on the map.
-            // Using the center of the transformed points roughly:
-            // ... (existing bounds logic) ...
-             const lats = [pointTopLeft[1], pointBottomLeft[1], pointTopRight[1], pointBottomRight[1]];
-             const longs = [pointTopLeft[0], pointBottomLeft[0], pointTopRight[0], pointBottomRight[0]];
-             const minLat = Math.min(...lats);
-             const maxLat = Math.max(...lats);
-             const minLng = Math.min(...longs);
-             const maxLng = Math.max(...longs);
-             
-             console.log('EmbedMap: Fitting bounds', [[minLat, minLng], [maxLat, maxLng]]);
-             map.fitBounds([[minLat, minLng], [maxLat, maxLng]]);
+            const lats = [pointTopLeft[1], pointBottomLeft[1], pointTopRight[1], pointBottomRight[1]];
+            const longs = [pointTopLeft[0], pointBottomLeft[0], pointTopRight[0], pointBottomRight[0]];
+            const minLat = Math.min(...lats);
+            const maxLat = Math.max(...lats);
+            const minLng = Math.min(...longs);
+            const maxLng = Math.max(...longs);
+            
+            map.fitBounds([[minLat, minLng], [maxLat, maxLng]]);
 
             return () => {
-                console.log('EmbedMap: Cleaning up layer');
                 container.removeLayer(arrugatorLayer);
             }
         } catch (error) {
@@ -152,16 +130,19 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
     return null;
 };
 
+    return null;
+};
+
 export default function EmbedMap({ selectedMap }) {
     const [gl, setGL] = useState(null);
     const canvasRef = useRef(null);
 
-    const setOpacity = (value) => {
-        if (value > 0) {
-            value /= 100;
-        }
+    const setOpacity = (val) => {
+        const value = parseFloat(val);
+        const opacity = value / 100;
+        
         if (canvasRef.current) {
-             L.DomUtil.setOpacity(canvasRef.current, value.toFixed(2));
+             L.DomUtil.setOpacity(canvasRef.current, opacity.toFixed(2));
         }
     }
 
