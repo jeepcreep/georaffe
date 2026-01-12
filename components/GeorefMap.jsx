@@ -21,7 +21,7 @@ import { Button, Tooltip } from "flowbite-react";
 import Loading from './loading';
 import { CurrentControlPointStatus, MapScope, MapScopeInfo } from "@utils/enums";
 
-import { MdPublic, MdPublicOff, MdHandshake } from "react-icons/md";
+import { MdPublic, MdPublicOff, MdHandshake, MdCode } from "react-icons/md";
 
 
 export default function GeorefMap({selectedMap, tilesHostUrl, controlPoints, setControlPoints}) {
@@ -401,6 +401,14 @@ export default function GeorefMap({selectedMap, tilesHostUrl, controlPoints, set
     }
   }
 
+  const copyEmbedUrl = () => {
+    const url = `${window.location.origin}/embed/${selectedMap._id}`;
+    navigator.clipboard.writeText(url);
+    toast.success('Embed URL copied to clipboard!', {
+      position: 'top-left',
+    });
+  }
+
   return (
     <section className='w-full flex-center flex-col'>
 
@@ -424,6 +432,13 @@ export default function GeorefMap({selectedMap, tilesHostUrl, controlPoints, set
                     <ScopeIcon />
                   </Tooltip>
                 </div>
+                {selectedMap.scope === MapScope.Public && (
+                  <div className='cursor-pointer' onClick={copyEmbedUrl}>
+                    <Tooltip content="Copy Embed URL" style="light">
+                      <MdCode className="ml-2 h-5 w-5 hover:text-blue-500"/>
+                    </Tooltip>
+                  </div>
+                )}
                 <div className=''>
                   <div className='mx-2'>{selectedMap.title}</div>
                 </div>
