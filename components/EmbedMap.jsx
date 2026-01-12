@@ -199,8 +199,8 @@ export default function EmbedMap({ selectedMap }) {
                 </div>
             </div>
             
-            {/* Hidden Canvas for Arrugator - must be in layout for getClientRects() */}
-            <canvas ref={canvasRef} style={{ visibility: 'hidden', position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}></canvas>
+            {/* Canvas for Arrugator - Leaflet will move this into the map pane */}
+            <canvas ref={canvasRef} />
         </section>
     );
 };
