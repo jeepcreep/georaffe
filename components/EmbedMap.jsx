@@ -17,10 +17,144 @@ import { TransformationType } from "@utils/enums";
 import { GcpTransformer } from '@allmaps/transform';
 import proj4 from 'proj4';
 
+const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
+    const context = useLeafletContext();
+    const map = useMap();
+    
+    // Setup Proj4 definitions
+    useEffect(() => {
+         proj4.defs("EPSG:4839", "+proj=lcc +lat_0=51 +lon_0=10.5 +lat_1=48.6666666666667 +lat_2=53.6666666666667 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
+         proj4.defs("EPSG:3395", "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs");
+    }, []);
+
+
+    useEffect(() => {
+        console.log('EmbedMap: Checking map data', selectedMap);
+        if (!selectedMap || !selectedMap.controlPoints) {
+            console.log('EmbedMap: No map or control points');
+            return;
+        }
+
+        var transformGcps = [];
+        for (var controlPoint of selectedMap.controlPoints) {
+            if (controlPoint.toPoint &&
+                controlPoint.toPoint.length >= 2 &&
+                controlPoint.rasterImageCoords &&
+                controlPoint.rasterImageCoords.length >= 2) {
+
+                transformGcps.push({
+                    source: controlPoint.rasterImageCoords,
+                    destination: [controlPoint.toPoint[1], controlPoint.toPoint[0]]
+                })
+            }
+        }
+        console.log('EmbedMap: Transform GCPs', transformGcps);
+
+        if (transformGcps.length < 3) {
+             console.log('EmbedMap: Not enough GCPs', transformGcps.length);
+             return;
+        }
+
+        const options = {
+            differentHandedness: true,
+            maxOffsetRatio: 5,
+            maxDepth: 100
+        }
+
+        const activeTransformationType = selectedMap.transformationType || TransformationType.Polynomial;
+        console.log('EmbedMap: Using transformation type', activeTransformationType);
+
+        const transformer = new GcpTransformer(transformGcps, activeTransformationType);
+        
+        // Calculate corner points
+        const pointTopLeft = transformer.transformForward([0, 0], options);
+        const pointBottomLeft = transformer.transformForward([0, selectedMap.height], options);
+        const pointTopRight = transformer.transformForward([selectedMap.width, 0], options);
+        const pointBottomRight = transformer.transformForward([selectedMap.width, selectedMap.height], options);
+
+        console.log('EmbedMap: Transformed corners', { pointTopLeft, pointBottomLeft, pointTopRight, pointBottomRight });
+
+        const forwardProj = proj4('WGS84', 'EPSG:3857').forward;
+        
+        // Setup WebGL context
+         const canvas = canvasRef.current;
+         if(canvas) {
+            console.log('EmbedMap: Canvas found, initializing WebGL');
+            setGL(canvas.getContext("webgl2", {}));
+         } else {
+             console.error('EmbedMap: Canvas ref is null');
+         }
+
+
+        const filename = selectedMap.fileId;
+        const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+        const fileExt = filename.substring(filename.lastIndexOf('.') + 1);
+        // Assuming NEXT_PUBLIC_TILES_HOST_URL is available in the env
+        const fullUrl = `${process.env.NEXT_PUBLIC_TILES_HOST_URL}/${filenameWithoutExt}/${filenameWithoutExt}_reduced.${fileExt}`;
+        console.log('EmbedMap: Full Image URL', fullUrl);
+
+        try {
+            const arrugatorLayer = new L.ImageOverlay.Arrugator(
+                fullUrl,
+                {
+                    controlPoints: [
+                        pointTopLeft,
+                        pointBottomLeft,
+                        pointTopRight,
+                        pointBottomRight,
+                    ],
+                    projector: forwardProj,
+                    epsilon: 1000000,
+                    fragmentShader: "void main() { gl_FragColor = texture2D(uRaster, vUV); }",
+                    subdivisions: 1,
+                    cropX: [-Infinity, Infinity],
+                    cropY: [-Infinity, Infinity],
+                    padding: 0.1,
+                    opacity: 1,
+                    attribution: selectedMap.title,
+                    pane: "overlayPane",
+                    map: map,
+                    myCanvas: canvasRef.current
+                }
+            );
+
+            console.log('EmbedMap: Arrugator layer created', arrugatorLayer);
+
+            const container = context.layerContainer || context.map;
+            container.addLayer(arrugatorLayer);
+            console.log('EmbedMap: Layer added to container');
+
+            // Fit bounds to the overlay
+            // We can approximate bounds from the transformed corners or just let the user scroll
+            // For better UX, let's try to center on the map.
+            // Using the center of the transformed points roughly:
+            // ... (existing bounds logic) ...
+             const lats = [pointTopLeft[1], pointBottomLeft[1], pointTopRight[1], pointBottomRight[1]];
+             const longs = [pointTopLeft[0], pointBottomLeft[0], pointTopRight[0], pointBottomRight[0]];
+             const minLat = Math.min(...lats);
+             const maxLat = Math.max(...lats);
+             const minLng = Math.min(...longs);
+             const maxLng = Math.max(...longs);
+             
+             console.log('EmbedMap: Fitting bounds', [[minLat, minLng], [maxLat, maxLng]]);
+             map.fitBounds([[minLat, minLng], [maxLat, maxLng]]);
+
+            return () => {
+                console.log('EmbedMap: Cleaning up layer');
+                container.removeLayer(arrugatorLayer);
+            }
+        } catch (error) {
+            console.error('EmbedMap: Error creating/adding layer', error);
+        }
+
+    }, [selectedMap, context, map]);
+
+    return null;
+};
+
 export default function EmbedMap({ selectedMap }) {
     const [gl, setGL] = useState(null);
     const canvasRef = useRef(null);
-    // const transformationType = TransformationType.Polynomial; // Fixed transformation type
 
     const setOpacity = (value) => {
         if (value > 0) {
@@ -31,141 +165,6 @@ export default function EmbedMap({ selectedMap }) {
         }
     }
 
-    const GeoRefOverlay = ({ selectedMap }) => {
-        const context = useLeafletContext();
-        const map = useMap();
-        
-        // Setup Proj4 definitions
-        useEffect(() => {
-             proj4.defs("EPSG:4839", "+proj=lcc +lat_0=51 +lon_0=10.5 +lat_1=48.6666666666667 +lat_2=53.6666666666667 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs");
-             proj4.defs("EPSG:3395", "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs");
-        }, []);
-
-
-        useEffect(() => {
-            console.log('EmbedMap: Checking map data', selectedMap);
-            if (!selectedMap || !selectedMap.controlPoints) {
-                console.log('EmbedMap: No map or control points');
-                return;
-            }
-
-            var transformGcps = [];
-            for (var controlPoint of selectedMap.controlPoints) {
-                if (controlPoint.toPoint &&
-                    controlPoint.toPoint.length >= 2 &&
-                    controlPoint.rasterImageCoords &&
-                    controlPoint.rasterImageCoords.length >= 2) {
-
-                    transformGcps.push({
-                        source: controlPoint.rasterImageCoords,
-                        destination: [controlPoint.toPoint[1], controlPoint.toPoint[0]]
-                    })
-                }
-            }
-            console.log('EmbedMap: Transform GCPs', transformGcps);
-
-            if (transformGcps.length < 3) {
-                 console.log('EmbedMap: Not enough GCPs', transformGcps.length);
-                 return;
-            }
-
-            const options = {
-                differentHandedness: true,
-                maxOffsetRatio: 5,
-                maxDepth: 100
-            }
-
-            const activeTransformationType = selectedMap.transformationType || TransformationType.Polynomial;
-            console.log('EmbedMap: Using transformation type', activeTransformationType);
-
-            const transformer = new GcpTransformer(transformGcps, activeTransformationType);
-            
-            // Calculate corner points
-            const pointTopLeft = transformer.transformForward([0, 0], options);
-            const pointBottomLeft = transformer.transformForward([0, selectedMap.height], options);
-            const pointTopRight = transformer.transformForward([selectedMap.width, 0], options);
-            const pointBottomRight = transformer.transformForward([selectedMap.width, selectedMap.height], options);
-
-            console.log('EmbedMap: Transformed corners', { pointTopLeft, pointBottomLeft, pointTopRight, pointBottomRight });
-
-            const forwardProj = proj4('WGS84', 'EPSG:3857').forward;
-            
-            // Setup WebGL context
-             const canvas = canvasRef.current;
-             if(canvas) {
-                console.log('EmbedMap: Canvas found, initializing WebGL');
-                setGL(canvas.getContext("webgl2", {}));
-             } else {
-                 console.error('EmbedMap: Canvas ref is null');
-             }
-
-
-            const filename = selectedMap.fileId;
-            const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
-            const fileExt = filename.substring(filename.lastIndexOf('.') + 1);
-            // Assuming NEXT_PUBLIC_TILES_HOST_URL is available in the env
-            const fullUrl = `${process.env.NEXT_PUBLIC_TILES_HOST_URL}/${filenameWithoutExt}/${filenameWithoutExt}_reduced.${fileExt}`;
-            console.log('EmbedMap: Full Image URL', fullUrl);
-
-            try {
-                const arrugatorLayer = new L.ImageOverlay.Arrugator(
-                    fullUrl,
-                    {
-                        controlPoints: [
-                            pointTopLeft,
-                            pointBottomLeft,
-                            pointTopRight,
-                            pointBottomRight,
-                        ],
-                        projector: forwardProj,
-                        epsilon: 1000000,
-                        fragmentShader: "void main() { gl_FragColor = texture2D(uRaster, vUV); }",
-                        subdivisions: 1,
-                        cropX: [-Infinity, Infinity],
-                        cropY: [-Infinity, Infinity],
-                        padding: 0.1,
-                        opacity: 1,
-                        attribution: selectedMap.title,
-                        pane: "overlayPane",
-                        map: map,
-                        myCanvas: canvasRef.current
-                    }
-                );
-
-                console.log('EmbedMap: Arrugator layer created', arrugatorLayer);
-
-                const container = context.layerContainer || context.map;
-                container.addLayer(arrugatorLayer);
-                console.log('EmbedMap: Layer added to container');
-
-                // Fit bounds to the overlay
-                // We can approximate bounds from the transformed corners or just let the user scroll
-                // For better UX, let's try to center on the map.
-                // Using the center of the transformed points roughly:
-                // ... (existing bounds logic) ...
-                 const lats = [pointTopLeft[1], pointBottomLeft[1], pointTopRight[1], pointBottomRight[1]];
-                 const longs = [pointTopLeft[0], pointBottomLeft[0], pointTopRight[0], pointBottomRight[0]];
-                 const minLat = Math.min(...lats);
-                 const maxLat = Math.max(...lats);
-                 const minLng = Math.min(...longs);
-                 const maxLng = Math.max(...longs);
-                 
-                 console.log('EmbedMap: Fitting bounds', [[minLat, minLng], [maxLat, maxLng]]);
-                 map.fitBounds([[minLat, minLng], [maxLat, maxLng]]);
-
-                return () => {
-                    console.log('EmbedMap: Cleaning up layer');
-                    container.removeLayer(arrugatorLayer);
-                }
-            } catch (error) {
-                console.error('EmbedMap: Error creating/adding layer', error);
-            }
-
-        }, [selectedMap, context, map]);
-
-        return null;
-    };
-
     return (
         <section className='w-full h-screen relative'>
             <MapContainer center={[53.55, 10]} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
@@ -173,7 +172,7 @@ export default function EmbedMap({ selectedMap }) {
                     url={'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
                     attribution={'&copy; OpenStreetMap contributors'}
                 />
-                <GeoRefOverlay selectedMap={selectedMap} />
+                <GeoRefOverlay selectedMap={selectedMap} canvasRef={canvasRef} setGL={setGL} />
             </MapContainer>
 
              {/* Floating UI Controls */}
