@@ -1,5 +1,5 @@
 import { Schema, model, models } from 'mongoose';
-import { MapStatus, MapScope } from '@utils/enums';
+import { MapStatus, MapScope, TransformationType } from '@utils/enums';
 
 const ControlPointSchema = new Schema({
     fromPoint: {
@@ -52,6 +52,10 @@ const MapSchema = new Schema({
     scope: {
         type: String,
         default: MapScope.Private
+    },
+    transformationType: {
+        type: String,
+        default: TransformationType.Polynomial
     },
     yearDepicted: {
         type: String

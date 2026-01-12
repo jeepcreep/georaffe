@@ -10,7 +10,7 @@ export default async function EmbedPage({ params }) {
         }
         
         // Only allow Public maps to be embedded
-        if (map.scope !== 'Public') {
+        if (map.scope !== 'public') {
              return <div className="flex items-center justify-center h-screen text-gray-500">This map is private and cannot be embedded.</div>;
         }
     

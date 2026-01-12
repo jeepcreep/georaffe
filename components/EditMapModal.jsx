@@ -4,7 +4,7 @@
 import { Button, FileInput, Label, Modal, TextInput, Spinner, RangeSlider, Dropdown } from "flowbite-react";
 import { useState } from "react";
 
-import { MapScope, MapScopes, MapScopeInfo } from "@utils/enums";
+import { MapScope, MapScopes, MapScopeInfo, TransformationType, TransformationTypes, TransformationTypeLabels } from "@utils/enums";
 
 import { MdOutlineArrowDropDown } from "react-icons/md";
 
@@ -17,6 +17,7 @@ export default function EditMapModal ({ maps, setMaps, userId, selectedMap, setS
   const [location, setLocation] = useState(selectedMap.locationDepicted);
   const [scope, setScope] = useState(selectedMap.scope)
   const [scopeInfo, setScopeInfo] = useState(MapScopeInfo[selectedMap.scope])
+  const [transformationType, setTransformationType] = useState(selectedMap.transformationType || TransformationType.Polynomial);
   const [isLoading, setIsLoading] = useState(false);
 
   function onCloseModal() {
@@ -25,6 +26,7 @@ export default function EditMapModal ({ maps, setMaps, userId, selectedMap, setS
     setYear(selectedMap.yearDepicted);
     setLocation(selectedMap.locationDepicted);
     setScope(selectedMap.scope);
+    setTransformationType(selectedMap.transformationType || TransformationType.Polynomial);
   }
 
   const handleSubmit = async (e) => {
@@ -39,6 +41,7 @@ export default function EditMapModal ({ maps, setMaps, userId, selectedMap, setS
             userId,
             title,
             scope,
+            transformationType,
             year,
             location
         })
@@ -143,6 +146,24 @@ export default function EditMapModal ({ maps, setMaps, userId, selectedMap, setS
                       {scopeInfo}
                 </div>
 
+                <div className="block">
+                  <div className="mb-2">
+                    Transformation Type
+                  </div>
+
+                  <Dropdown dismissOnClick={true} 
+                    renderTrigger={() => <Button size="xs" className='blue_gradient_btn'>{TransformationTypeLabels[transformationType]}<MdOutlineArrowDropDown 
+                    className="ml-2 h-5 w-5"/></Button>}>
+                  {TransformationTypes.map(type => 
+                    <Dropdown.Item 
+                      key={type}
+                      className={type == transformationType ? 'selected_item' : ''}
+                      onClick={() => setTransformationType(type)}>
+                        {TransformationTypeLabels[type]}
+                    </Dropdown.Item>
+                  )}
+                </Dropdown>
+                </div>
    
               
               <div className="w-full">
