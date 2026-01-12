@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
-import { useLeafletContext, useMap } from 'react-leaflet/hooks'; // Fixed import source
+import { useLeafletContext } from '@react-leaflet/core';
+import { useMap } from 'react-leaflet/hooks';
 import L from 'leaflet';
 
 import * as Arrugator from '@public/scripts/leaflet.imageoverlay.arrugator';
