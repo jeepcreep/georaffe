@@ -188,8 +188,8 @@ export default function EmbedMap({ selectedMap }) {
                 </div>
             </div>
             
-            {/* Hidden Canvas for Arrugator */}
-            <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+            {/* Hidden Canvas for Arrugator - must be in layout for getClientRects() */}
+            <canvas ref={canvasRef} style={{ visibility: 'hidden', position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}></canvas>
         </section>
     );
 };
