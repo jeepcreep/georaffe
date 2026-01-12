@@ -1,5 +1,7 @@
-import EmbedMap from '@components/EmbedMap';
+import dynamic from 'next/dynamic';
 import { getMapById } from '@utils/dbTools';
+
+const EmbedMap = dynamic(() => import('@components/EmbedMap'), { ssr: false });
 
 export default async function EmbedPage({ params }) {
     try {
