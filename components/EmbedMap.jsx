@@ -19,7 +19,7 @@ import proj4 from 'proj4';
 export default function EmbedMap({ selectedMap }) {
     const [gl, setGL] = useState(null);
     const canvasRef = useRef(null);
-    const transformationType = TransformationType.Polynomial; // Fixed transformation type
+    // const transformationType = TransformationType.Polynomial; // Fixed transformation type
 
     const setOpacity = (value) => {
         if (value > 0) {
@@ -66,7 +66,7 @@ export default function EmbedMap({ selectedMap }) {
                 maxDepth: 100
             }
 
-            const transformer = new GcpTransformer(transformGcps, transformationType);
+            const transformer = new GcpTransformer(transformGcps, selectedMap.transformationType || TransformationType.Polynomial);
             
             // Calculate corner points
             const pointTopLeft = transformer.transformForward([0, 0], options);
