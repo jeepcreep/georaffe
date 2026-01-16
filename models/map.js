@@ -16,6 +16,14 @@ const ControlPointSchema = new Schema({
     }
 }, { timestamps: true, })
 
+const MarkerSchema = new Schema({
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
+    title: { type: String, required: true },
+    description: String,
+    link: String
+}, { timestamps: true });
+
 ControlPointSchema.pre('save', (next) => {
     console.log('pre save for control point : ' + this)
     next();
@@ -64,6 +72,7 @@ const MapSchema = new Schema({
         type: String
     },
     controlPoints: [ControlPointSchema],
+    markers: [MarkerSchema],
 }, { timestamps: true, })
 
 const Map = models.Map || model("Map", MapSchema);

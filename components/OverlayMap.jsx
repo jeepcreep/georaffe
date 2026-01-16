@@ -15,7 +15,10 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { useEffect, useMemo, useRef, useCallback } from 'react'
 import toast from 'react-hot-toast';
-import { RangeSlider, Label, Dropdown } from "flowbite-react";
+import { RangeSlider, Label, Dropdown, Button, Tooltip } from "flowbite-react";
+import { MdVisibility, MdVisibilityOff, MdEdit, MdCancel } from "react-icons/md";
+import MapMarkers from './MapMarkers';
+import AddMarkerModal from './AddMarkerModal';
 import Loading from './loading';
 import { TransformationType, TransformationTypes, TransformationTypeLabels, TransformationTypesMinGCP } from "@utils/enums";
 
@@ -29,6 +32,63 @@ export default function OverlayMap({selectedMap}) {
     const [gl, setGL] = useState(null);
     const [transformationType, setTransformationType] = useState(TransformationType.Polynomial);
     let canvasRef = useRef(null);
+
+    const [markers, setMarkers] = useState(selectedMap.markers || []);
+    const [showMarkers, setShowMarkers] = useState(true);
+    const [editMode, setEditMode] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [newMarkerPos, setNewMarkerPos] = useState(null);
+
+    const AddMarkerClick = () => {
+        useMapEvents({
+            click(e) {
+                if (editMode) {
+                    setNewMarkerPos(e.latlng);
+                    setModalOpen(true);
+                }
+            },
+        });
+        return null;
+    }
+
+    const saveMarker = async (data) => {
+        try {
+            const res = await fetch(`/api/map/${selectedMap._id}/marker`, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                const newMarker = await res.json();
+                setMarkers([...markers, newMarker]);
+                toast.success('Marker added!');
+            } else {
+                toast.error('Failed to add marker');
+            }
+        } catch(e) {
+            console.error(e);
+            toast.error('Failed to add marker');
+        }
+    }
+
+    const deleteMarker = async (id) => {
+        if (!confirm('Are you sure you want to delete this marker?')) return;
+        try {
+             const res = await fetch(`/api/map/${selectedMap._id}/marker`, {
+                method: 'DELETE',
+                body: JSON.stringify({ markerId: id })
+            });
+            if (res.ok) {
+                 const updatedMarkers = await res.json();
+                 setMarkers(updatedMarkers);
+                 toast.success('Marker deleted!');
+            } else {
+                toast.error('Failed to delete marker');
+            }
+        } catch(e) {
+             console.error(e);
+             toast.error('Failed to delete marker');
+        }
+    }
 
     const setOpacity = (value) => {
         if (value > 0) {
@@ -223,6 +283,21 @@ export default function OverlayMap({selectedMap}) {
                 <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
                         Set opacity to see how well the overlay works
                 </div>
+                
+                <div className="flex flex-row gap-2 mt-1 items-center justify-center w-full">
+                    <Tooltip content={showMarkers ? "Hide Markers" : "Show Markers"}>
+                        <Button size="xs" color="light" onClick={() => setShowMarkers(!showMarkers)}>
+                            {showMarkers ? <MdVisibility className="h-4 w-4"/> : <MdVisibilityOff className="h-4 w-4"/>}
+                        </Button>
+                    </Tooltip>
+                    
+                    <Tooltip content={editMode ? "Stop Adding Markers" : "Add Marker"}>
+                        <Button size="xs" color={editMode ? "failure" : "light"} onClick={() => setEditMode(!editMode)}>
+                             {editMode ? <MdCancel className="h-4 w-4"/> : <MdEdit className="h-4 w-4"/>}
+                        </Button>
+                    </Tooltip>
+                    {editMode && <span className="text-xs text-red-500 font-bold ml-1 animate-pulse">Click map to add!</span>}
+                </div>
             </div>
             <div className='w-1/2 flex-center flex-col'>
                 <Dropdown label="Transformation type" className='transformTypeSelection'>
@@ -241,11 +316,19 @@ export default function OverlayMap({selectedMap}) {
                     attribution={'&copy; OpenStreetMap contributors'}
                 />
                 <GeoRefOverlay selectedMap={selectedMap} />
+                {showMarkers && <MapMarkers markers={markers} deleteMarker={deleteMarker} isEditable={true} />}
+                <AddMarkerClick />
             </MapContainer>
         
       </div>
 
       <canvas ref={canvasRef}></canvas>
+      <AddMarkerModal 
+          show={modalOpen} 
+          onClose={() => setModalOpen(false)} 
+          onSave={saveMarker} 
+          position={newMarkerPos} 
+      />
     </section>
     
   );
