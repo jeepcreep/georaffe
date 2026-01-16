@@ -132,9 +132,6 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
     return null;
 };
 
-    return null;
-};
-
 const MapController = ({ activeMarker }) => {
     const map = useMap();
     useEffect(() => {
