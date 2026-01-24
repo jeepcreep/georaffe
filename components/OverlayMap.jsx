@@ -11,6 +11,7 @@ import * as Arrugator from '@public/scripts/leaflet.imageoverlay.arrugator'
 //L.RasterCoords = require('leaflet-rastercoords');
 
 import "leaflet/dist/leaflet.css";
+import "leaflet.fullscreen/dist/Control.FullScreen.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { useEffect, useMemo, useRef, useCallback } from 'react'
@@ -268,6 +269,21 @@ export default function OverlayMap({selectedMap}) {
         return null;
     }
 
+    const FullScreenControl = () => {
+        const map = useMap();
+        useEffect(() => {
+            import('leaflet.fullscreen').then(({ FullScreen }) => {
+                 const fullscreenControl = new FullScreen();
+                 map.addControl(fullscreenControl);
+                 
+                 return () => {
+                     map.removeControl(fullscreenControl);
+                 }
+            });
+        }, [map]);
+        return null;
+    }
+
     console.log('selectedMap in overlay map', selectedMap);
 
   return (
@@ -318,6 +334,7 @@ export default function OverlayMap({selectedMap}) {
                 <GeoRefOverlay selectedMap={selectedMap} />
                 {showMarkers && <MapMarkers markers={markers} deleteMarker={deleteMarker} isEditable={true} />}
                 <AddMarkerClick />
+                <FullScreenControl />
             </MapContainer>
         
       </div>

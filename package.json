@@ -20,6 +20,7 @@
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "leaflet-rastercoords": "^1.0.6",
+    "leaflet.fullscreen": "^5.3.0",
     "mongodb": "^6.6.2",
     "mongoose": "^8.3.5",
     "multer": "^1.4.5-lts.1",
