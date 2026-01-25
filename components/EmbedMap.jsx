@@ -9,6 +9,7 @@ import L from 'leaflet';
 import * as Arrugator from '@public/scripts/leaflet.imageoverlay.arrugator';
 
 import "leaflet/dist/leaflet.css";
+import "leaflet.fullscreen/dist/Control.FullScreen.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 
@@ -148,6 +149,21 @@ const MapController = ({ activeMarker }) => {
     return null;
 }
 
+const FullScreenControl = () => {
+    const map = useMap();
+    useEffect(() => {
+        import('leaflet.fullscreen').then(({ FullScreen }) => {
+             const fullscreenControl = new FullScreen();
+             map.addControl(fullscreenControl);
+             
+             return () => {
+                 map.removeControl(fullscreenControl);
+             }
+        });
+    }, [map]);
+    return null;
+}
+
 export default function EmbedMap({ selectedMap }) {
     const [gl, setGL] = useState(null);
     const canvasRef = useRef(null);
@@ -174,6 +190,7 @@ export default function EmbedMap({ selectedMap }) {
                 <GeoRefOverlay selectedMap={selectedMap} canvasRef={canvasRef} setGL={setGL} />
                 {showMarkers && <MapMarkers markers={selectedMap.markers} />}
                 <MapController activeMarker={activeMarker} />
+                <FullScreenControl />
             </MapContainer>
 
              {/* Floating UI Controls */}
