@@ -164,6 +164,17 @@ const FullScreenControl = () => {
     return null;
 }
 
+const StopPropagation = ({ children, className }) => {
+    const divRef = useRef(null);
+    useEffect(() => {
+        if (divRef.current) {
+            L.DomEvent.disableClickPropagation(divRef.current);
+            L.DomEvent.disableScrollPropagation(divRef.current);
+        }
+    }, []);
+    return <div ref={divRef} className={className}>{children}</div>;
+};
+
 export default function EmbedMap({ selectedMap }) {
     const [gl, setGL] = useState(null);
     const canvasRef = useRef(null);
@@ -191,69 +202,70 @@ export default function EmbedMap({ selectedMap }) {
                 {showMarkers && <MapMarkers markers={selectedMap.markers} />}
                 <MapController activeMarker={activeMarker} />
                 <FullScreenControl />
+
+                {/* Floating UI Controls */}
+                <StopPropagation className='absolute bottom-5 left-5 right-5 z-[1000] bg-white/90 p-3 rounded-lg shadow-lg max-w-sm transition-all'>
+                     <div className="flex flex-col">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm font-semibold text-gray-700 truncate mr-2">{selectedMap.title}</span>
+                             <div className="flex gap-1">
+                                <Tooltip content={showMarkers ? "Hide Markers" : "Show Markers"}>
+                                    <Button size="xs" color="light" onClick={() => setShowMarkers(!showMarkers)}>
+                                        {showMarkers ? <MdVisibility className="h-4 w-4"/> : <MdVisibilityOff className="h-4 w-4"/>}
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip content="Toggle Legend">
+                                    <Button size="xs" color={showLegend ? "gray" : "light"} onClick={() => setShowLegend(!showLegend)}>
+                                        <MdList className="h-4 w-4"/>
+                                    </Button>
+                                </Tooltip>
+                             </div>
+                        </div>
+                        <label htmlFor="opacity-level" className="sr-only">Opacity</label>
+                        <RangeSlider
+                            id="opacity-level"
+                            min="0"
+                            max="100"
+                            defaultValue="100"
+                            onChange={(event) => setOpacity(event.target.value)}
+                            className="w-full"
+                        />
+                        <div className="flex justify-between mt-1 text-xs text-gray-500">
+                            <span>Transparent</span>
+                            <span>Opaque</span>
+                        </div>
+                    </div>
+                </StopPropagation>
+
+                {/* Legend Drawer */}
+                <StopPropagation className={`absolute top-0 right-0 bottom-0 w-64 bg-white/95 shadow-xl z-[1001] overflow-y-auto p-4 transition-transform duration-300 ease-in-out ${showLegend ? 'translate-x-0' : 'translate-x-full'}`}>
+                    <div className="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 className="font-bold text-gray-900">Points of Interest</h3>
+                        <Button size="xs" color="light" pill onClick={() => setShowLegend(false)}>X</Button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        {selectedMap.markers && selectedMap.markers.map(marker => (
+                            <div 
+                                key={marker._id} 
+                                className={`p-3 rounded-lg cursor-pointer border hover:shadow-md transition-all ${activeMarker?._id === marker._id ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-400' : 'bg-white border-gray-200'}`}
+                                onClick={() => setActiveMarker(marker)}
+                            >
+                                <div className="font-semibold text-sm text-gray-800">{marker.title}</div>
+                                {marker.description && <div className="text-xs text-gray-500 mt-1 line-clamp-2">{marker.description}</div>}
+                            </div>
+                        ))}
+                        {(!selectedMap.markers || selectedMap.markers.length === 0) && (
+                            <div className="text-center py-8 text-gray-400">
+                                <p className="text-sm italic">No markers added yet.</p>
+                            </div>
+                        )}
+                    </div>
+                </StopPropagation>
+                
+                {/* Canvas for Arrugator */}
+                <canvas ref={canvasRef} />
+
             </MapContainer>
-
-             {/* Floating UI Controls */}
-            <div className='absolute bottom-5 left-5 right-5 z-[1000] bg-white/90 p-3 rounded-lg shadow-lg max-w-sm transition-all'>
-                 <div className="flex flex-col">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-semibold text-gray-700 truncate mr-2">{selectedMap.title}</span>
-                         <div className="flex gap-1">
-                            <Tooltip content={showMarkers ? "Hide Markers" : "Show Markers"}>
-                                <Button size="xs" color="light" onClick={() => setShowMarkers(!showMarkers)}>
-                                    {showMarkers ? <MdVisibility className="h-4 w-4"/> : <MdVisibilityOff className="h-4 w-4"/>}
-                                </Button>
-                            </Tooltip>
-                            <Tooltip content="Toggle Legend">
-                                <Button size="xs" color={showLegend ? "gray" : "light"} onClick={() => setShowLegend(!showLegend)}>
-                                    <MdList className="h-4 w-4"/>
-                                </Button>
-                            </Tooltip>
-                         </div>
-                    </div>
-                    <label htmlFor="opacity-level" className="sr-only">Opacity</label>
-                    <RangeSlider
-                        id="opacity-level"
-                        min="0"
-                        max="100"
-                        defaultValue="100"
-                        onChange={(event) => setOpacity(event.target.value)}
-                        className="w-full"
-                    />
-                    <div className="flex justify-between mt-1 text-xs text-gray-500">
-                        <span>Transparent</span>
-                        <span>Opaque</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Legend Drawer */}
-            <div className={`absolute top-0 right-0 bottom-0 w-64 bg-white/95 shadow-xl z-[1001] overflow-y-auto p-4 transition-transform duration-300 ease-in-out ${showLegend ? 'translate-x-0' : 'translate-x-full'}`}>
-                <div className="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 className="font-bold text-gray-900">Points of Interest</h3>
-                    <Button size="xs" color="light" pill onClick={() => setShowLegend(false)}>X</Button>
-                </div>
-                <div className="flex flex-col gap-2">
-                    {selectedMap.markers && selectedMap.markers.map(marker => (
-                        <div 
-                            key={marker._id} 
-                            className={`p-3 rounded-lg cursor-pointer border hover:shadow-md transition-all ${activeMarker?._id === marker._id ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-400' : 'bg-white border-gray-200'}`}
-                            onClick={() => setActiveMarker(marker)}
-                        >
-                            <div className="font-semibold text-sm text-gray-800">{marker.title}</div>
-                            {marker.description && <div className="text-xs text-gray-500 mt-1 line-clamp-2">{marker.description}</div>}
-                        </div>
-                    ))}
-                    {(!selectedMap.markers || selectedMap.markers.length === 0) && (
-                        <div className="text-center py-8 text-gray-400">
-                            <p className="text-sm italic">No markers added yet.</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-            
-            {/* Canvas for Arrugator - Leaflet will move this into the map pane */}
-            <canvas ref={canvasRef} />
         </section>
     );
 };
