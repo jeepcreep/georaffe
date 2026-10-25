@@ -24,6 +24,7 @@ The workflow is as such:
 
 Required tools installed or services running:
 
+* copy `.env.example` to `.env` (and to `.env.local` for local overrides, gitignored)
 * GDAL (https://gdal.org/) >= 3.6.0
     * either have this installed globally
     * or via conda:
