@@ -21,7 +21,7 @@ import { MdVisibility, MdVisibilityOff, MdEdit, MdCancel } from "react-icons/md"
 import MapMarkers from './MapMarkers';
 import AddMarkerModal from './AddMarkerModal';
 import Loading from './loading';
-import { TransformationType, TransformationTypes, TransformationTypeLabels, TransformationTypesMinGCP } from "@utils/enums";
+import { TransformationType, TransformationTypes, TransformationTypeLabels, TransformationTypesMinGCP, GeoStatus } from "@utils/enums";
 
 import { GcpTransformer } from '@allmaps/transform';
 
@@ -39,6 +39,28 @@ export default function OverlayMap({selectedMap}) {
     const [editMode, setEditMode] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [newMarkerPos, setNewMarkerPos] = useState(null);
+    const [isGeoreferencing, setIsGeoreferencing] = useState(false);
+
+    // Warps the image into geo-referenced tiles using the current control points.
+    // Until this runs, the embed falls back to the live warp preview.
+    const startGeoreferencing = async () => {
+        setIsGeoreferencing(true);
+        try {
+            const res = await fetch(`/api/map/${selectedMap._id}/georeference`, { method: 'POST' });
+            if (res.ok) {
+                toast.success('Georeferencing started — tiles will be ready shortly.', {
+                    position: 'top-left',
+                });
+            } else {
+                toast.error('Failed to start georeferencing.');
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to start georeferencing.');
+        } finally {
+            setIsGeoreferencing(false);
+        }
+    }
 
     const AddMarkerClick = () => {
         useMapEvents({
@@ -322,6 +344,30 @@ export default function OverlayMap({selectedMap}) {
                     )
                     )}
                 </Dropdown>
+                <Button
+                    size="xs"
+                    className='blue_gradient_btn mt-2'
+                    disabled={isGeoreferencing || (selectedMap.controlPoints || []).length < 3}
+                    isProcessing={isGeoreferencing || selectedMap.geoStatus === GeoStatus.Processing}
+                    onClick={startGeoreferencing}
+                >
+                    {(selectedMap.controlPoints || []).length < 3
+                        ? 'Needs at least 3 control points'
+                        : selectedMap.geoStatus === GeoStatus.Processing
+                            ? 'Building tiles...'
+                            : selectedMap.geoStatus === GeoStatus.Ready
+                                ? 'Rebuild tiles'
+                                : 'Georeference & build tiles'}
+                </Button>
+                {selectedMap.geoStatus === GeoStatus.Ready && (
+                    <div className="py-1 text-xs text-green-600">Tiles are ready — the embed loads them now.</div>
+                )}
+                {selectedMap.geoStatus === GeoStatus.Error && (
+                    <div className="py-1 text-xs text-red-500">Last run failed. Try again.</div>
+                )}
+                <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
+                    Needed for the embed and the sharp view. Only visible tiles are loaded then.
+                </div>
             </div>
         </div>
       <div className='w-full flex-center flex-row'>

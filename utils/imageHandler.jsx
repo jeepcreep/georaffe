@@ -5,10 +5,11 @@ const sharp = require("sharp");
 
 import {imageDimensionsFromData} from 'image-dimensions';
 
-import { MapStatus } from '@utils/enums';
+import { MapStatus, GeoStatus } from '@utils/enums';
 
 import { uploadToS3Bucket } from './s3handler';
 import { buildTilePyramid } from './tiler';
+import { warpToTiles } from './geowarp';
 
 export const saveSizeReducedCopy = async (pathToImage) => {
     try {
@@ -170,4 +171,71 @@ const uploadTilesToS3 = async (tilesDir) => {
         }
     }
     await walk(tilesDir);
+}
+
+/**
+ * Warps the map image with its control points into geo-referenced XYZ tiles and
+ * uploads them to <fileBase>/geotiles/. This is what makes the embed cheap to load:
+ * the browser then fetches only the visible tiles instead of the full image.
+ *
+ * Kept separate from the raster tiling above: the editor needs the *unwarped* image
+ * (raster tiles, image coords) to place control points, the embed needs the *warped*
+ * one (geotiles, Web Mercator coords). Hence two output folders.
+ *
+ * Requires at least 3 control points.
+ */
+export const createGeoTilesFromMap = async (map) => {
+    const mapId = map._id.toString();
+
+    const setGeoStatus = async (geoStatus) => {
+        await fetch(process.env.HOST_BASE_URL_LOCAL + '/api/map/' + mapId, {
+            method: 'PATCH',
+            body: JSON.stringify({ geoStatus })
+        })
+    }
+
+    const gcps = (map.controlPoints || [])
+        .filter(cp => cp.toPoint?.length >= 2 && cp.rasterImageCoords?.length >= 2)
+        .map(cp => ({
+            source: [cp.rasterImageCoords[0], cp.rasterImageCoords[1]],
+            destination: [cp.toPoint[1], cp.toPoint[0]]   // [lng, lat], as in the client
+        }))
+
+    if (gcps.length < 3) {
+        console.log(`[GeoTiles] Map ${mapId} has only ${gcps.length} control points, skipping.`);
+        return { message: 'not enough control points.' };
+    }
+
+    await setGeoStatus(GeoStatus.Processing)
+
+    const sourceImagePath = path.join(process.cwd(), 'public/uploads/', map.fileId);
+    const geoDir = sourceImagePath.substring(0, sourceImagePath.lastIndexOf('.')) + '/geotiles';
+
+    try {
+        const maxZoom = await geoMaxZoom(gcps, map.width);
+        console.log(`[GeoTiles] Warping map ${mapId} at maxZoom ${maxZoom}`);
+
+        const { tiles } = await warpToTiles(sourceImagePath, gcps, map.transformationType, geoDir, maxZoom);
+        console.log(`[GeoTiles] Wrote ${tiles} geo tiles for ${mapId}`);
+
+        await uploadTilesToS3(geoDir);
+        await setGeoStatus(GeoStatus.Ready);
+        console.log(`[GeoTiles] Map ${mapId} ready.`);
+    } catch (error) {
+        console.error(`[GeoTiles] Failed for ${mapId}:`, error);
+        await setGeoStatus(GeoStatus.Error);
+    }
+
+    return { message: 'georeferencing done.' };
+}
+
+// Picks the zoom level where one tile pixel is about one source pixel, so the map
+// is not upscaled into mush and not oversampled either. Clamped to Web Mercator.
+const geoMaxZoom = async (gcps, imageWidth) => {
+    const lngs = gcps.map(g => g.destination[0]);
+    const spanLng = Math.max(...lngs) - Math.min(...lngs);
+    if (!(spanLng > 0) || !imageWidth) return 6;
+
+    const z = Math.log2((imageWidth * 360) / (spanLng * 256));
+    return Math.max(0, Math.min(22, Math.round(z)));
 }

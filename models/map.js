@@ -57,6 +57,16 @@ const MapSchema = new Schema({
         type: Number,
         default: 5
     },
+    status: {
+        type: String,
+        default: MapStatus.New
+    },
+    // Separate from `status`: those cover the raw upload/raster tiling (editor),
+    // this one covers the warp into geo-referenced tiles (embed).
+    geoStatus: {
+        type: String,
+        default: null
+    },
     scope: {
         type: String,
         default: MapScope.Private

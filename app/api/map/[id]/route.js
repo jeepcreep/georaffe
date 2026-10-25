@@ -16,7 +16,7 @@ export const GET = async (req, { params }) => {
 }
 
 export const PATCH = async (req, { params }) => {
-    const { status, fileId, width, height, title, scope, transformationType, year, location } = await req.json();
+    const { status, geoStatus, fileId, width, height, title, scope, transformationType, year, location } = await req.json();
 
     try {
         const existingMap = await getMapById(params.id);
@@ -25,6 +25,9 @@ export const PATCH = async (req, { params }) => {
 
         if (status) {
             existingMap.status = status;
+        }
+        if (geoStatus) {
+            existingMap.geoStatus = geoStatus;
         }
         if (fileId) {
             existingMap.fileId = fileId;

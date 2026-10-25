@@ -5,6 +5,7 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import { useLeafletContext } from '@react-leaflet/core';
 import { useMap } from 'react-leaflet/hooks';
 import L from 'leaflet';
+import { GeoStatus } from '@utils/enums';
 
 import * as Arrugator from '@public/scripts/leaflet.imageoverlay.arrugator';
 
@@ -20,7 +21,7 @@ import { TransformationType } from "@utils/enums";
 import { GcpTransformer } from '@allmaps/transform';
 import proj4 from 'proj4';
 
-const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
+const GeoRefOverlay = ({ selectedMap, canvasRef, tileLayerRef, setGL }) => {
     const context = useLeafletContext();
     const map = useMap();
     
@@ -34,6 +35,36 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
     useEffect(() => {
         if (!selectedMap || !selectedMap.controlPoints) {
             return;
+        }
+
+        const fileBase = selectedMap.fileId.substring(0, selectedMap.fileId.lastIndexOf('.'));
+        const container = context.layerContainer || context.map;
+
+        // Once the warp has run, use the geo-referenced tiles: the browser then loads
+        // only the tiles in view instead of the full image, at any zoom level.
+        if (selectedMap.geoStatus === GeoStatus.Ready) {
+            const tileLayer = L.tileLayer(
+                `${process.env.NEXT_PUBLIC_TILES_HOST_URL}/${fileBase}/geotiles/{z}/{x}/{y}.png`,
+                {
+                    noWrap: true,
+                    attribution: selectedMap.title,
+                }
+            );
+            tileLayerRef.current = tileLayer;
+            container.addLayer(tileLayer);
+
+            // Frame the map on the control points, same extent the warp covers.
+            const lats = selectedMap.controlPoints.map(cp => cp.toPoint[0]);
+            const lngs = selectedMap.controlPoints.map(cp => cp.toPoint[1]);
+            map.fitBounds([
+                [Math.min(...lats), Math.min(...lngs)],
+                [Math.max(...lats), Math.max(...lngs)]
+            ]);
+
+            return () => {
+                container.removeLayer(tileLayer);
+                tileLayerRef.current = null;
+            }
         }
 
         var transformGcps = [];
@@ -112,8 +143,7 @@ const GeoRefOverlay = ({ selectedMap, canvasRef, setGL }) => {
             const container = context.layerContainer || context.map;
             container.addLayer(arrugatorLayer);
 
-            const lats = [pointTopLeft[1], pointBottomLeft[1], pointTopRight[1], pointBottomRight[1]];
-            const longs = [pointTopLeft[0], pointBottomLeft[0], pointTopRight[0], pointBottomRight[0]];
+            const lats = [pointTopLeft[1], pointBottomLeft[1], pointTopRight[1], pointBottomRight[1]];            const longs = [pointTopLeft[0], pointBottomLeft[0], pointTopRight[0], pointBottomRight[0]];
             const minLat = Math.min(...lats);
             const maxLat = Math.max(...lats);
             const minLng = Math.min(...longs);
@@ -178,6 +208,7 @@ const StopPropagation = ({ children, className }) => {
 export default function EmbedMap({ selectedMap }) {
     const [gl, setGL] = useState(null);
     const canvasRef = useRef(null);
+    const tileLayerRef = useRef(null);
     const [showMarkers, setShowMarkers] = useState(true);
     const [showLegend, setShowLegend] = useState(false);
     const [activeMarker, setActiveMarker] = useState(null);
@@ -185,9 +216,16 @@ export default function EmbedMap({ selectedMap }) {
     const setOpacity = (val) => {
         const value = parseFloat(val);
         const opacity = value / 100;
-        
+
+        // live-warp preview draws onto a canvas
         if (canvasRef.current) {
              L.DomUtil.setOpacity(canvasRef.current, opacity.toFixed(2));
+        }
+        // geo-referenced tiles: adjust the layer's opacity and repaint
+        const tileLayer = tileLayerRef.current;
+        if (tileLayer && typeof tileLayer._updateOpacity === 'function') {
+            tileLayer.options.opacity = opacity;
+            tileLayer._updateOpacity();
         }
     }
 
@@ -198,7 +236,7 @@ export default function EmbedMap({ selectedMap }) {
                     url={'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
                     attribution={'&copy; OpenStreetMap contributors'}
                 />
-                <GeoRefOverlay selectedMap={selectedMap} canvasRef={canvasRef} setGL={setGL} />
+                <GeoRefOverlay selectedMap={selectedMap} canvasRef={canvasRef} tileLayerRef={tileLayerRef} setGL={setGL} />
                 {showMarkers && <MapMarkers markers={selectedMap.markers} />}
                 <MapController activeMarker={activeMarker} />
                 <FullScreenControl />

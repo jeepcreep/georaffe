@@ -9,6 +9,14 @@ export const MapStatus = {
     Ready: 'ready'
 }
 
+// Tracks the warp into geo-referenced tiles (what the embed loads). Kept apart from
+// MapStatus so that starting a warp does not hide the editor or the thumbnail.
+export const GeoStatus = {
+    Processing: 'processing',
+    Ready: 'ready',
+    Error: 'error'
+}
+
 export const MapScope = {
     Private: 'private',
     Public: 'public',
