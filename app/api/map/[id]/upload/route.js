@@ -1,9 +1,7 @@
-import connectToDatabase  from '@utils/database';
 import { saveImageLocally, createTilesFromImage, saveSizeReducedCopy, uploadReducedImage } from '@utils/imageHandler'
 
 import { getMapById } from '@utils/dbTools';
 
-const { db } = await connectToDatabase();
 const fs = require('node:fs');
 const path = require('node:path'); 
 

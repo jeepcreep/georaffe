@@ -145,7 +145,7 @@ export default function CreateMapModal ({ maps, setMaps, userId, setSelectedMap 
                           <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                           <span className="font-semibold">Click to upload</span> or drag and drop
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">PNG or JPG (MAX. 20MB)</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">PNG or JPG (MAX. 200MB)</p>
                       </div>
                       ) : (
                         <p className="text-xs text-gray-500 dark:text-gray-400">{file.name}</p>

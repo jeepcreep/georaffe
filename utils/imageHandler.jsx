@@ -1,15 +1,14 @@
-const { spawn } = require('child_process');
 const fs = require('fs').promises;
 const path = require('node:path'); 
 
 const sharp = require("sharp");
 
 import {imageDimensionsFromData} from 'image-dimensions';
-const { Readable } = require('stream');
 
 import { MapStatus } from '@utils/enums';
 
 import { uploadToS3Bucket } from './s3handler';
+import { buildTilePyramid } from './tiler';
 
 export const saveSizeReducedCopy = async (pathToImage) => {
     try {
@@ -116,84 +115,59 @@ export const saveImageLocally = async (file, mapId)  => {
     return null;
 }
 
-// we need to call 
-// python3 gdal2tiles.py -p raster -l -z 0-5 <filename>
+// Builds the tile pyramid locally and uploads it to R2, then flips the map to Ready.
+// Replaces the old python3 gdal2tiles.py spawn + the 4s/5s poll loop in s3handler.jsx:
+// tiling and upload happen sequentially right here, so the map goes Ready as soon as
+// it is actually done instead of waiting for the next poll tick.
 export const createTilesFromImage = async (filename, mapId, maxZoomLevel) => {
 
-    await fetch(process.env.HOST_BASE_URL_LOCAL + '/api/map/' + mapId, {
-        method: 'PATCH',
-        body: JSON.stringify({
-            status: MapStatus.Tiling
+    const setStatus = async (status) => {
+        await fetch(process.env.HOST_BASE_URL_LOCAL + '/api/map/' + mapId, {
+            method: 'PATCH',
+            body: JSON.stringify({ status })
         })
-      })
+    }
 
-    const tilesDir = filename.substring(0, filename.lastIndexOf('.')) + '/tiles';
+    await setStatus(MapStatus.Tiling)
 
-    console.log(`[Tiling] Spawning python3 with args: utils/gdal2tiles.py -p raster -l -z 0-${maxZoomLevel} ${filename} ${tilesDir}`);
+    const fileBase = filename.substring(0, filename.lastIndexOf('.'));
+    const tilesDir = fileBase + '/tiles';
 
-    const pythonProcess = spawn('python3', [
-        'utils/gdal2tiles.py',
-        '-p',
-        'raster',
-        '-l',
-        '-z',
-        '0-' + maxZoomLevel,
-        filename,
-        tilesDir
-    ]);
+    try {
+        console.log(`[Tiling] Building tile pyramid for ${filename}, maxZoom ${maxZoomLevel}`);
 
-    // const pythonProcess = spawn('gdal2tiles.py', [
-    //     '-p',
-    //     'raster',
-    //     '-l',
-    //     '-z',
-    //     '0-' + maxZoomLevel,
-    //     filename,
-    //     tilesDir
-    // ]);
+        const tileCount = await buildTilePyramid(filename, tilesDir, maxZoomLevel);
+        console.log(`[Tiling] Wrote ${tileCount} tiles to ${tilesDir}`);
 
-    pythonProcess.stdout.on('data', (data) => {
-        console.log(`[Tiling stdout]: ${data}`);
-    });
-      
-    pythonProcess.stderr.on('data', async (data) => {
-        console.error(`[Tiling stderr]: ${data}`);
-    });
+        await setStatus(MapStatus.TilingDone);
 
-    pythonProcess.on('error', (err) => {
-        console.error(`[Tiling] Failed to start subprocess: ${err}`);
-    });
-      
-    pythonProcess.on('close', async (code) => {
-        console.log(`[Tiling] Child process exited with code ${code}`);
-        
-        // Verify if directory was created
-        try {
-            await fs.access(tilesDir);
-            console.log(`[Tiling] Success: Output directory exists at ${tilesDir}`);
-            const files = await fs.readdir(tilesDir);
-            console.log(`[Tiling] Directory contains ${files.length} items.`);
-        } catch (e) {
-            console.error(`[Tiling] CRITICAL ERROR: Output directory DOES NOT EXIST at ${tilesDir} after script finished!`);
+        // upload everything under public/uploads/<fileBase>/tiles to R2
+        await uploadTilesToS3(tilesDir);
+
+        await setStatus(MapStatus.Ready);
+        console.log(`[Tiling] Map ${mapId} ready.`);
+    } catch (error) {
+        console.error(`[Tiling] Failed for ${mapId}:`, error);
+        await setStatus(MapStatus.ErrorWhileTiling);
+    }
+
+    return { 'message': 'tiling done.' }
+}
+
+const uploadTilesToS3 = async (tilesDir) => {
+    const walk = async (dir) => {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+            const full = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+                await walk(full);
+            } else if (entry.isFile()) {
+                const data = await fs.readFile(full);
+                // key relative to public/uploads/, e.g. <fileBase>/tiles/5/3/7.png
+                const s3Key = full.substring(full.indexOf('uploads/') + 'uploads/'.length);
+                await uploadToS3Bucket(data, s3Key, process.env.AWS_S3_TILES_BUCKET);
+            }
         }
-
-        if (code == 0) {
-            await fetch(process.env.HOST_BASE_URL_LOCAL + '/api/map/' + mapId, {
-                method: 'PATCH',
-                body: JSON.stringify({
-                    status: MapStatus.TilingDone
-                })
-              })
-        }
-        else {
-            await fetch(process.env.HOST_BASE_URL_LOCAL + '/api/map/' + mapId, {
-                method: 'PATCH',
-                body: JSON.stringify({
-                    status: MapStatus.ErrorWhileTiling
-                })
-              })
-        }
-    });
-
-    return {'message': 'tiling has started.'}
+    }
+    await walk(tilesDir);
 }

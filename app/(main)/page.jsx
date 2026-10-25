@@ -25,7 +25,6 @@ const Home = () => {
   const [maps, setMaps] = useState([]);
   const [selectedMap, setSelectedMap] = useState(null);
   const [isLoading, setLoading] = useState(true)
-  const [schedulerStarted, setSchedulerStarted] = useState(false)
   const [displayOverlayMap, setDisplayOverlayMap] = useState(false);
 
   const [controlPoints, setControlPoints] = useState(selectedMap?.controlPoints? selectedMap.controlPoints : []);
@@ -34,18 +33,6 @@ const Home = () => {
 
   useEffect( () => {
       const fetchMaps = async () => {
-
-      if (!schedulerStarted) {
-        try {
-          const createNewMapResponse = await fetch('/api/services/scheduler', {
-            method: 'POST',
-            body: JSON.stringify({})
-          })
-          setSchedulerStarted(true);
-        } catch  (error) {
-          console.log(error);
-        }
-      }
 
       const response = await fetch('/api/map');
       if (response.status == 401) {
