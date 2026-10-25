@@ -7,10 +7,24 @@ Letzte Aktualisierung: Start des Umbaus
 | Strang | Status |
 |---|---|
 | Doku | ✅ abgeschlossen |
-| 1 — GDAL raus, `sharp`-Tiler | ✅ Code fertig, Test läuft |
+| 1 — GDAL raus, `sharp`-Tiler | ✅ erledigt, Self-Check grün |
 | 2 — Datei-Limit hoch | ✅ erledigt |
-| 3 — Embed/Overlay auf Tiles | ⚠️ blockiert — Architektur-Frage offen (siehe unten) |
+| 3 — Embed/Overlay auf Tiles | ✅ Variante A umgesetzt, Self-Check grün |
 | 4 — UI/UX neu | ⬜ offen |
+
+## Deployment-Fix (Healthcheck)
+
+Coolify meldete wiederholt `unhealthy`, Log zeigte pro Versuch:
+`/bin/sh: 1: curl: not found` / `wget: not found`.
+
+**Ursache**: Coolify's HTTP-Healthcheck ruft die URL per `curl`/`wget` ab.
+`node:20-slim` bringt keins von beiden mit → Exit 1 → Container gilt als unhealthy.
+
+**Fix**:
+- `Dockerfile`: `curl` via apt installiert (node:20-slim, ein Layer).
+- `app/api/health/route.js`: neuer, bewusst DB- und Auth-freier Endpoint,
+  liefert immer `{"status":"ok"}` mit 200. Als Healthcheck-Pfad in Coolify eintragen.
+- Verifiziert: `next build` grün, `next start` + `GET /api/health` → 200.
 
 ## ⚠️ Strang 3: offene Architektur-Entscheidung
 

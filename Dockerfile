@@ -1,5 +1,8 @@
 FROM node:20-slim AS base
 
+# Coolify's HTTP healthcheck shells out to curl/wget, neither of which node:20-slim ships.
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Install dependencies first so the layer cache survives source changes
