@@ -17,11 +17,11 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { useEffect, useMemo, useRef, useCallback } from 'react'
 import toast from 'react-hot-toast';
 import { RangeSlider, Label, Dropdown, Button, Tooltip } from "flowbite-react";
-import { MdVisibility, MdVisibilityOff, MdEdit, MdCancel } from "react-icons/md";
+import { MdVisibility, MdVisibilityOff, MdEdit, MdCancel, MdContentCopy } from "react-icons/md";
 import MapMarkers from './MapMarkers';
 import AddMarkerModal from './AddMarkerModal';
 import Loading from './loading';
-import { TransformationType, TransformationTypes, TransformationTypeLabels, TransformationTypesMinGCP, GeoStatus } from "@utils/enums";
+import { TransformationType, TransformationTypes, TransformationTypeLabels, TransformationTypesMinGCP, GeoStatus, MapScope } from "@utils/enums";
 
 import { GcpTransformer } from '@allmaps/transform';
 
@@ -40,6 +40,19 @@ export default function OverlayMap({selectedMap}) {
     const [modalOpen, setModalOpen] = useState(false);
     const [newMarkerPos, setNewMarkerPos] = useState(null);
     const [isGeoreferencing, setIsGeoreferencing] = useState(false);
+    const [embedUrl, setEmbedUrl] = useState('');
+
+    // Built client-side only (needs window.location.origin), so it stays empty during SSR.
+    useEffect(() => {
+        if (typeof window !== 'undefined' && selectedMap?._id) {
+            setEmbedUrl(`${window.location.origin}/embed/${selectedMap._id}`);
+        }
+    }, [selectedMap?._id]);
+
+    const copyEmbedUrl = () => {
+        navigator.clipboard.writeText(embedUrl);
+        toast.success('Embed URL copied to clipboard!', { position: 'top-left' });
+    }
 
     // Warps the image into geo-referenced tiles using the current control points.
     // Until this runs, the embed falls back to the live warp preview.
@@ -356,8 +369,8 @@ export default function OverlayMap({selectedMap}) {
                         : selectedMap.geoStatus === GeoStatus.Processing
                             ? 'Building tiles...'
                             : selectedMap.geoStatus === GeoStatus.Ready
-                                ? 'Rebuild tiles'
-                                : 'Georeference & build tiles'}
+                                ? 'Rebuild embed tiles'
+                                : 'Build embed tiles'}
                 </Button>
                 {selectedMap.geoStatus === GeoStatus.Ready && (
                     <div className="py-1 text-xs text-green-600">Tiles are ready — the embed loads them now.</div>
@@ -366,8 +379,24 @@ export default function OverlayMap({selectedMap}) {
                     <div className="py-1 text-xs text-red-500">Last run failed. Try again.</div>
                 )}
                 <div className="flex h-full flex-row justify-between py-2 text-gray-400 text-xs">
-                    Needed for the embed and the sharp view. Only visible tiles are loaded then.
+                    Warps the image onto the map and cuts it into tiles the embed loads. Needed for the embed and the sharp view.
                 </div>
+                {selectedMap.scope === MapScope.Public && embedUrl && (
+                    <div className="flex items-center gap-2 w-full max-w-xs mt-1">
+                        <input
+                            readOnly
+                            value={embedUrl}
+                            onFocus={(e) => e.target.select()}
+                            aria-label="Embed URL"
+                            className="flex-1 text-xs border rounded px-2 py-1 bg-gray-50 text-gray-700"
+                        />
+                        <Tooltip content="Copy Embed URL">
+                            <Button size="xs" color="light" onClick={copyEmbedUrl}>
+                                <MdContentCopy className="h-4 w-4" />
+                            </Button>
+                        </Tooltip>
+                    </div>
+                )}
             </div>
         </div>
       <div className='w-full flex-center flex-row'>
